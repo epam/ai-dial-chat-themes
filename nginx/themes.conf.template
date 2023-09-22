@@ -1,0 +1,15 @@
+server {
+    listen 8080;
+    large_client_header_buffers 4 16k;
+
+    error_log /var/log/nginx/error.log;
+    root /var/www;
+
+    location / {
+        expires 1M;
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        add_header Cache-Control "public";
+    }
+}

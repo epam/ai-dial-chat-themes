@@ -1,0 +1,31 @@
+{
+  "themes": {
+    "colorsPalette": {
+      "green": "#37BABC",
+      "blue-500": "#5A8CE9",
+      "blue-700": "#4878D2",
+      "violet": "#9459F1",
+      "gray-100": "#FCFCFC",
+      "gray-200": "#F3F4F6",
+      "gray-300": "#EAEDF0",
+      "gray-400": "#DDE1E6",
+      "gray-500": "#7F8792",
+      "gray-600": "#333942",
+      "gray-700": "#222932",
+      "gray-800": "#141A23",
+      "gray-900": "#090D13",
+      "black": "#000000",
+      "red-200": "#F3D6D8",
+      "red-400": "#F76464",
+      "red-800": "#AE2F2F",
+      "red-900": "#402027"
+    }
+  },
+  "images": {
+    "app-logo": "",
+    "app-logo-dark": "",
+    "default-model": "",
+    "default-addon": "",
+    "favicon": "favicon.png"
+  }
+}
