@@ -1,4 +1,4 @@
-FROM nginxinc/nginx-unprivileged:1.25-alpine
+FROM nginxinc/nginx-unprivileged:1.25-alpine-slim
 RUN rm /etc/nginx/conf.d/default.conf
 COPY static /var/www
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
