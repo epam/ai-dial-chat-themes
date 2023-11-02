@@ -1,6 +1,6 @@
 # Overview
 
-The project is an HTTP server hosting themes for chatbot UI web application. A theme is a suite of static resources of images, fonts or set of colors.
+The project is an HTTP server hosting themes for AI Dial web application. A theme is a suite of static resources of images, fonts or set of colors.
 
 More details about theme customization can be found [here](https://github.com/epam/ai-dial-chat/blob/development/docs/THEME-CUSTOMIZATION.md).
 
