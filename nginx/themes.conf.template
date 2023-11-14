@@ -25,11 +25,5 @@ server {
         tcp_nopush on;
         tcp_nodelay on;
         add_header Cache-Control "public";
-
-        # Prevent hot-linking and bandwidth theft
-        valid_referers none blocked www.example.com example.com;
-        if ($invalid_referer) {
-            return 403;
-        }
     }
 }
