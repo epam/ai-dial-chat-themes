@@ -3,77 +3,93 @@
     {
       "displayName": "Light",
       "id": "light",
-      "app-logo": "",
+      "app-logo": "logo.svg",
       "colors": {
-        "bg-dropdowns": "#FCFCFC",
-        "bg-tooltips": "#FCFCFC",
+        "bg-layer-0": "#FCFCFC",
         "bg-layer-1": "#EAEDF0",
         "bg-layer-2": "#F3F4F6",
         "bg-layer-3": "#FCFCFC",
         "bg-layer-4": "#DDE1E6",
         "bg-blackout": "#090D134D",
         "bg-error": "#F3D6D8",
-        "bg-controls-primary": "#5C8DEA",
-        "bg-controls-primary-hover": "#4878D2",
-        "bg-accent-primary": "#2764D91A",
-        "bg-accent-secondary": "#009D9F1A",
-        "bg-accent-tertiary": "#843EF31A",
+        "bg-accent-primary": "#2764d9",
+        "bg-accent-secondary": "#009D9F",
+        "bg-accent-tertiary": "#843EF3",
+        "bg-accent-primary-alpha": "#2764d91A",
+        "bg-accent-secondary-alpha": "#009D9F1A",
+        "bg-accent-tertiary-alpha": "#843EF31A",
 
-        "stroke-primary": "#DDE1E6",
-        "stroke-secondary": "",
-        "stroke-error": "#AE2F2F",
-
-        "divider-primary": "#EAEDF0",
-        "divider-secondary": "#DDE1E6",
-
-        "text-icons": "#7F8792",
         "text-primary": "#141A23",
         "text-secondary": "#7F8792",
         "text-error": "#AE2F2F",
         "text-accent-primary": "#2764D9",
         "text-accent-secondary": "#009D9F",
-        "text-accent-tertiary": "#843EF3"
+        "text-accent-tertiary": "#843EF3",
+
+        "stroke-primary": "#DDE1E6",
+        "stroke-secondary": "#DDE1E6",
+        "stroke-tertiary": "#EAEDF0",
+        "stroke-hover": "#141A23",
+        "stroke-error": "#AE2F2F",
+        "stroke-accent-primary": "#2764D9",
+        "stroke-accent-secondary": "#009D9F",
+        "stroke-accent-tertiary": "#843EF3",
+
+        "controls-bg-accent": "#5C8DEA",
+        "controls-bg-accent-hover": "#4878D2",
+        "controls-bg-disable": "#7F8792",
+
+        "controls-text-permanent": "#FCFCFC",
+        "controls-text-disable": "#DDE1E6"
       }
     },
     {
       "displayName": "Dark",
-      "cssClass": "dark",
-      "app-logo": "",
+      "id": "dark",
+      "app-logo": "logo-dark.svg",
       "colors": {
-        "bg-dropdowns": "#000000",
-        "bg-tooltips": "#000000",
+        "bg-layer-0": "#000000",
         "bg-layer-1": "#090D13",
         "bg-layer-2": "#141A23",
         "bg-layer-3": "#222932",
         "bg-layer-4": "#333942",
         "bg-blackout": "#090D13B3",
         "bg-error": "#402027",
-        "bg-controls-primary": "#5C8DEA",
-        "bg-controls-primary-hover": "#4878D2",
-        "bg-accent-primary": "#5C8DEA2B",
-        "bg-accent-secondary": "#009D9F26",
-        "bg-accent-tertiary": "#843EF32B",
+        "bg-accent-primary": "#5C8DEA",
+        "bg-accent-secondary": "#37BABC",
+        "bg-accent-tertiary": "#A972FF",
+        "bg-accent-primary-alpha": "#5C8DEA2B",
+        "bg-accent-secondary-alpha": "#37BABC26",
+        "bg-accent-tertiary-alpha": "#A972FF2B",
 
-        "stroke-primary": "#333942",
-        "stroke-secondary": "",
-        "stroke-error": "#F76464",
-
-        "divider-primary": "#090D13",
-        "divider-secondary": "#222932",
-
-        "text-icons": "#7F8792",
         "text-primary": "#F3F4F6",
         "text-secondary": "#7F8792",
         "text-error": "#F76464",
         "text-accent-primary": "#5C8DEA",
         "text-accent-secondary": "#37BABC",
-        "text-accent-tertiary": "#A972FF"
+        "text-accent-tertiary": "#A972FF",
+
+        "stroke-primary": "#333942",
+        "stroke-secondary": "#222932",
+        "stroke-tertiary": "#090D13",
+        "stroke-error": "#F76464",
+        "stroke-hover": "#F3F4F6",
+        "stroke-accent-primary": "#5C8DEA",
+        "stroke-accent-secondary": "#37BABC",
+        "stroke-accent-tertiary": "#A972FF",
+
+        "controls-bg-accent": "#5C8DEA",
+        "controls-bg-accent-hover": "#4878D2",
+        "controls-bg-disable": "#7F8792",
+
+        "controls-text-permanent": "#FCFCFC",
+        "controls-text-disable": "#333942"
       }
     }
   ],
   "images": {
-    "default-model": "",
-    "default-addon": "",
+    "default-model": "message-square-lines-alt.svg",
+    "default-addon": "message-square-lines-alt.svg",
     "favicon": "favicon.png"
   }
 }
