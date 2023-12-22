@@ -3,7 +3,7 @@
     {
       "displayName": "Light",
       "id": "light",
-      "app-logo": "logo.svg",
+      "app-logo": "",
       "colors": {
         "bg-layer-0": "#FCFCFC",
         "bg-layer-1": "#EAEDF0",
@@ -46,7 +46,7 @@
     {
       "displayName": "Dark",
       "id": "dark",
-      "app-logo": "logo-dark.svg",
+      "app-logo": "",
       "colors": {
         "bg-layer-0": "#000000",
         "bg-layer-1": "#090D13",
