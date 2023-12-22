@@ -1,52 +1,9 @@
 {
   "themes": [
     {
-      "displayName": "Light",
-      "id": "light",
-      "app-logo": "logo.svg",
-      "colors": {
-        "bg-layer-0": "#FCFCFC",
-        "bg-layer-1": "#EAEDF0",
-        "bg-layer-2": "#F3F4F6",
-        "bg-layer-3": "#FCFCFC",
-        "bg-layer-4": "#DDE1E6",
-        "bg-blackout": "#090D134D",
-        "bg-error": "#F3D6D8",
-        "bg-accent-primary": "#2764d9",
-        "bg-accent-secondary": "#009D9F",
-        "bg-accent-tertiary": "#843EF3",
-        "bg-accent-primary-alpha": "#2764d91A",
-        "bg-accent-secondary-alpha": "#009D9F1A",
-        "bg-accent-tertiary-alpha": "#843EF31A",
-
-        "text-primary": "#141A23",
-        "text-secondary": "#7F8792",
-        "text-error": "#AE2F2F",
-        "text-accent-primary": "#2764D9",
-        "text-accent-secondary": "#009D9F",
-        "text-accent-tertiary": "#843EF3",
-
-        "stroke-primary": "#DDE1E6",
-        "stroke-secondary": "#DDE1E6",
-        "stroke-tertiary": "#EAEDF0",
-        "stroke-hover": "#141A23",
-        "stroke-error": "#AE2F2F",
-        "stroke-accent-primary": "#2764D9",
-        "stroke-accent-secondary": "#009D9F",
-        "stroke-accent-tertiary": "#843EF3",
-
-        "controls-bg-accent": "#5C8DEA",
-        "controls-bg-accent-hover": "#4878D2",
-        "controls-bg-disable": "#7F8792",
-
-        "controls-text-permanent": "#FCFCFC",
-        "controls-text-disable": "#DDE1E6"
-      }
-    },
-    {
       "displayName": "Dark",
       "id": "dark",
-      "app-logo": "logo-dark.svg",
+      "app-logo": "",
       "colors": {
         "bg-layer-0": "#000000",
         "bg-layer-1": "#090D13",
@@ -84,6 +41,49 @@
 
         "controls-text-permanent": "#FCFCFC",
         "controls-text-disable": "#333942"
+      }
+    },
+    {
+      "displayName": "Light",
+      "id": "light",
+      "app-logo": "",
+      "colors": {
+        "bg-layer-0": "#FCFCFC",
+        "bg-layer-1": "#EAEDF0",
+        "bg-layer-2": "#F3F4F6",
+        "bg-layer-3": "#FCFCFC",
+        "bg-layer-4": "#DDE1E6",
+        "bg-blackout": "#090D134D",
+        "bg-error": "#F3D6D8",
+        "bg-accent-primary": "#2764d9",
+        "bg-accent-secondary": "#009D9F",
+        "bg-accent-tertiary": "#843EF3",
+        "bg-accent-primary-alpha": "#2764d91A",
+        "bg-accent-secondary-alpha": "#009D9F1A",
+        "bg-accent-tertiary-alpha": "#843EF31A",
+
+        "text-primary": "#141A23",
+        "text-secondary": "#7F8792",
+        "text-error": "#AE2F2F",
+        "text-accent-primary": "#2764D9",
+        "text-accent-secondary": "#009D9F",
+        "text-accent-tertiary": "#843EF3",
+
+        "stroke-primary": "#DDE1E6",
+        "stroke-secondary": "#DDE1E6",
+        "stroke-tertiary": "#EAEDF0",
+        "stroke-hover": "#141A23",
+        "stroke-error": "#AE2F2F",
+        "stroke-accent-primary": "#2764D9",
+        "stroke-accent-secondary": "#009D9F",
+        "stroke-accent-tertiary": "#843EF3",
+
+        "controls-bg-accent": "#5C8DEA",
+        "controls-bg-accent-hover": "#4878D2",
+        "controls-bg-disable": "#7F8792",
+
+        "controls-text-permanent": "#FCFCFC",
+        "controls-text-disable": "#DDE1E6"
       }
     }
   ],

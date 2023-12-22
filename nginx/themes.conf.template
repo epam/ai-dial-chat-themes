@@ -25,5 +25,6 @@ server {
         tcp_nopush on;
         tcp_nodelay on;
         add_header Cache-Control "public";
+        add_header Access-Control-Allow-Origin "*";
     }
 }
