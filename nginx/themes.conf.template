@@ -27,4 +27,10 @@ server {
         add_header Cache-Control "public";
         add_header Access-Control-Allow-Origin "*";
     }
+
+    location = /health {
+        access_log off;
+        add_header 'Content-Type' 'application/json';
+        return 200 '{"status":"ok"}';
+    }
 }
