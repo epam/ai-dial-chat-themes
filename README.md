@@ -6,7 +6,7 @@ A theme is a suite of static resources of images, fonts or sets of colors. The A
 
 # Developer Environment
 
-The HTTP server is run in Docker container. All you need is to install the latest Docker engine.
+The HTTP server is run in Docker container. All you need is to [install the latest Docker engine](https://docs.docker.com/engine/install/).
 
 # Build
 
