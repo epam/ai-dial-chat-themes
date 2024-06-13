@@ -30,6 +30,77 @@ make run
 
 > Refer to [AI DIAL Helm](https://github.com/epam/ai-dial-helm) to learn about the deployment options and view the examples of charts.
 
-2. Further, it is necessary to configure AI DIAL Chat to work with AI DIAL Chat Themes. To do that, add `THEMES_CONFIG_HOST` to the chat configuration - refer to [documentation](https://github.com/epam/ai-dial-chat/blob/development/apps/chat/README.md) for details.
+2. Further, it is necessary to configure AI DIAL Chat to work with AI DIAL Chat Themes. To do that, add `THEMES_CONFIG_HOST` to the chat configuration - refer to [documentation](https://github.com/epam/ai-dial-chat/blob/development/apps/chat/README.md) for details. `THEMES_CONFIG_HOST` environment variable contains the URL to your nginx server with the configuration and images. This ensures that the application fetches your configuration file during loading. If the environment variable is not provided, [default themes and model icons]((./static/config.json)) will be applied.
 
 3. In the [config.json](./static/config.json) file, you can define and configure custom themes or use default ones. All the configured themes are available in the chat application in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings). 
+
+# Working with Themes
+
+## Add Theme
+
+In the [config.json](./static/config.json) file you can find two default themes: light and dark (default theme).
+
+To declare a new theme, create an object inside the `themes` property and fill all the required fields as shown on the example:
+
+> **Note**: the first theme in the `themes` array will be used as default one for **new** users. For other users, the theme will be fetched from a local storage.
+
+```json
+  // defined themes as an array
+  "themes": [
+    {
+      "displayName": "Light",   // Displayed name in settings modal on UI
+      "id": "light",            // Some kebab case id name
+      "app-logo": "logo.svg",   // URL for website logo displayed
+      "colors": {
+        // Semantic colors which commonly used across entire application.
+        // See default configuration to check available colors
+      },
+      "font-family":"Inter" //Font for the theme
+    },
+    // Other themes
+  ],
+```
+
+The URL for `app-logo` will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. You can also specify a full path to your images like `https://some-path.svg`, if you are hosting image somewhere else.
+
+## Customize Image URLs
+
+You can customize image URLs using a configuration file [config.json](./static/config.json). To achieve this, create the following structure:
+
+```json
+{
+  "themes": [
+    // defined themes as an array
+  ],
+  "images": {
+    // common for all themes image urls
+    "default-model": "", //default icon for applications without a custom icon configured
+    "default-addon": "", //default icon for addons without a custom icon configured
+    "favicon": "favicon.png" // Chat application favicon
+  }
+}
+```
+Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them in the external source.
+
+### Customize Theme Colors
+
+> Specify a hex value in colors. Refer to [Hex Color](https://developer.mozilla.org/en-US/docs/Web/CSS/hex-color) for reference.
+
+You can customize color palettes in the `colors` property for each object in the list of `themes`:
+
+> **Note**, in the [config.json](./static/config.json) file you can find default color palettes for both dark and light themes.
+
+```json
+{
+  "themes": [
+    {
+      "displayName": "Dark",
+      "colors": {...}
+    },
+    {
+      "displayName": "Light",
+      "colors": {...}
+    }
+  ]
+}
+```
