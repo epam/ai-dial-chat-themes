@@ -61,7 +61,7 @@ To declare a new theme, create an object inside the `themes` property and fill a
   ],
 ```
 
-The URL for `app-logo` will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. You can also specify a full path to your images like `https://some-path.svg`, if you are hosting image somewhere else.
+The URL for `app-logo` will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. You can also specify a full path to your images like `https://some-path.svg`, if you are hosting them at the external source.
 
 ## Customize Image URLs
 
@@ -80,7 +80,7 @@ You can customize image URLs using a configuration file [config.json](./static/c
   }
 }
 ```
-Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them in the external source.
+Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source.
 
 ## Customize Theme Colors
 
