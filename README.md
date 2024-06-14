@@ -6,7 +6,7 @@ A theme is a suite of static resources of images, fonts and color palettes you c
 
 When a theme is configured, chat application users can select it in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
 
-# Developer Environment
+# Set Up Developer Environment
 
 The HTTP server is run in Docker container. All you need is to [install the latest Docker engine](https://docs.docker.com/engine/install/).
 
@@ -26,7 +26,7 @@ Execute this command to run the Docker container and bind the container port 808
 make run
 ```
 
-# Deployment and Configuration
+# Helm Deployment and Configuration
 
 1. You can deploy AI DIAL Chat Themes as a part of a [common dial Helm chart](https://github.com/epam/ai-dial-helm/tree/main/charts/dial) or in a [stand-alone chart](https://github.com/epam/ai-dial-helm/tree/main/charts/dial-extension).
 
@@ -34,7 +34,9 @@ make run
 
 2. Further, it is necessary to configure AI DIAL Chat to work with AI DIAL Chat Themes. To do that, add `THEMES_CONFIG_HOST` to the chat configuration - refer to [documentation](https://github.com/epam/ai-dial-chat/blob/development/apps/chat/README.md) for details. `THEMES_CONFIG_HOST` environment variable contains the URL to your nginx server with the configuration and images. This ensures that the application fetches your configuration file during loading. If the environment variable is not provided, [default themes and model icons]((./static/config.json)) will be applied.
 
-3. In the [config.json](./static/config.json) file, you can define and configure custom themes or use default ones. All the configured themes are available in the chat application in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings). 
+3. In the [config.json](./static/config.json) file, you can define and configure custom themes or use (edit) default ones. All the configured themes are available in the chat application in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
+
+4. After applying changes, it is necessary to redeploy the themes server. Changes will take effect automatically on the chat UI after 24hrs or upon the page reload. 
 
 # Working with Themes
 
