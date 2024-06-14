@@ -80,7 +80,7 @@ You can customize image URLs using a configuration file [config.json](./static/c
   }
 }
 ```
-Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source.
+Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. 
 
 ## Customize Theme Colors
 
