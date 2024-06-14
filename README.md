@@ -42,7 +42,7 @@ In the [config.json](./static/config.json) file you can find two default themes:
 
 To declare a new theme, create an object inside the `themes` property and fill all the required fields as shown on the example:
 
-> **Note**: the first theme in the `themes` array will be used as default one for **new** users. For other users, the theme will be fetched from a local storage.
+> **Note**: if you create a list of custom themes, the first theme in the `themes` array will be used as a default one for **new** users. For other users, the theme will be fetched from a local storage.
 
 ```json
   // defined themes as an array
@@ -82,7 +82,7 @@ You can customize image URLs using a configuration file [config.json](./static/c
 ```
 Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them in the external source.
 
-### Customize Theme Colors
+## Customize Theme Colors
 
 > Specify a hex value in colors. Refer to [Hex Color](https://developer.mozilla.org/en-US/docs/Web/CSS/hex-color) for reference.
 
