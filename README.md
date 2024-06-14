@@ -1,8 +1,10 @@
 # Overview
 
-A theme is a suite of static resources of images, fonts or sets of colors. The AI DIAL Chat Themes project is an HTTP server hosting themes for the AI DIAL Chat web application. By having a dedicated server for themes, it enables developers and designers to work concurrently and implement changes to themes without needing to redeploy the AI DIAL Chat application.
+A theme is a suite of static resources of images, fonts and color palettes you can use to customize the look and feel of your chat application. The AI DIAL Chat Themes project is an HTTP server hosting themes for the AI DIAL Chat web application. By having a dedicated server for themes, it enables developers and designers to work concurrently and implement changes to themes without needing to redeploy the AI DIAL Chat application.
 
 > Refer to [AI DIAL Chat](https://github.com/epam/ai-dial-chat) to learn more about it.
+
+When a theme is configured, chat application users can select it in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
 
 # Developer Environment
 
