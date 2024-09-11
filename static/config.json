@@ -9,7 +9,7 @@
         "bg-layer-1": "#090D13",
         "bg-layer-2": "#141A23",
         "bg-layer-3": "#222932",
-        "bg-layer-4": "#333942",
+        "bg-layer-4": "#424952",
         "bg-blackout": "#090D13B3",
         "bg-error": "#402027",
         "bg-warning": "#3F3D25",
@@ -32,7 +32,7 @@
         "text-accent-secondary": "#37BABC",
         "text-accent-tertiary": "#A972FF",
 
-        "stroke-primary": "#333942",
+        "stroke-primary": "#424952",
         "stroke-secondary": "#222932",
         "stroke-tertiary": "#090D13",
         "stroke-error": "#F76464",
@@ -61,7 +61,7 @@
         "bg-layer-1": "#EAEDF0",
         "bg-layer-2": "#F3F4F6",
         "bg-layer-3": "#FCFCFC",
-        "bg-layer-4": "#DDE1E6",
+        "bg-layer-4": "#C3C9D0",
         "bg-blackout": "#090D134D",
         "bg-error": "#F3D6D8",
         "bg-warning": "#FAF0CF",
@@ -84,8 +84,8 @@
         "text-accent-secondary": "#009D9F",
         "text-accent-tertiary": "#843EF3",
 
-        "stroke-primary": "#DDE1E6",
-        "stroke-secondary": "#DDE1E6",
+        "stroke-primary": "#C3C9D0",
+        "stroke-secondary": "#D4D9E0",
         "stroke-tertiary": "#EAEDF0",
         "stroke-hover": "#141A23",
         "stroke-error": "#AE2F2F",
@@ -101,7 +101,7 @@
         "controls-bg-disable": "#7F8792",
 
         "controls-text-permanent": "#FCFCFC",
-        "controls-text-disable": "#DDE1E6"
+        "controls-text-disable": "#C3C9D0"
       }
     }
   ],
