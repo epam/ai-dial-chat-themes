@@ -51,6 +51,33 @@
         "controls-text-permanent": "#FCFCFC",
         "controls-text-disable": "#424952",
         "bg-model-icon": "#FFFFFF"
+      },
+      "topicColors": {
+        "bg-topic-default": "#5C8DEA2B",
+        "stroke-topic-default": "#5C8DEA",
+
+        "bg-topic-business": "#5C8DEA2B",
+        "stroke-topic-business": "#5C8DEA",
+        "bg-topic-development": "#60D2392B",
+        "stroke-topic-development": "#60D239",
+        "bg-topic-user-experience": "#FF4E7826",
+        "stroke-topic-user-experience": "#FF4E78",
+        "bg-topic-analysis": "#A972FF2B",
+        "stroke-topic-analysis": "#A972FF",
+        "bg-topic-sql": "#C7925A26",
+        "stroke-topic-sql": "#C7925A",
+        "bg-topic-sdlc": "#3F3D25",
+        "stroke-topic-sdlc": "#F4CE46",
+        "bg-topic-talk-to-your-data": "#CD00D426",
+        "stroke-topic-talk-to-your-data": "#CD00D4",
+        "bg-topic-rag": "#6C902626",
+        "stroke-topic-rag": "#6C9026",
+        "bg-topic-text-generation": "#37BABC26",
+        "stroke-topic-text-generation": "#37BABC",
+        "bg-topic-image-generation": "#FF6B0026",
+        "stroke-topic-image-generation": "#FF6B00",
+        "bg-topic-image-recognition": "#4D4DFF26",
+        "stroke-topic-image-recognition": "#4D4DFF"
       }
     },
     {
@@ -103,6 +130,33 @@
 
         "controls-text-permanent": "#FCFCFC",
         "controls-text-disable": "#C3C9D0"
+      },
+      "topicColors": {
+        "bg-topic-default": "#5C8DEA2B",
+        "stroke-topic-default": "#5C8DEA",
+
+        "bg-topic-business": "#5C8DEA2B",
+        "stroke-topic-business": "#5C8DEA",
+        "bg-topic-development": "#60D2392B",
+        "stroke-topic-development": "#60D239",
+        "bg-topic-user-experience": "#FF4E7826",
+        "stroke-topic-user-experience": "#FF4E78",
+        "bg-topic-analysis": "#A972FF2B",
+        "stroke-topic-analysis": "#A972FF",
+        "bg-topic-sql": "#C7925A26",
+        "stroke-topic-sql": "#C7925A",
+        "bg-topic-sdlc": "#FAF0CF",
+        "stroke-topic-sdlc": "#DAAE14",
+        "bg-topic-talk-to-your-data": "#CD00D426",
+        "stroke-topic-talk-to-your-data": "#CD00D4",
+        "bg-topic-rag": "#6C902626",
+        "stroke-topic-rag": "#6C9026",
+        "bg-topic-text-generation": "#37BABC26",
+        "stroke-topic-text-generation": "#37BABC",
+        "bg-topic-image-generation": "#FF6B0026",
+        "stroke-topic-image-generation": "#FF6B00",
+        "bg-topic-image-recognition": "#4D4DFF26",
+        "stroke-topic-image-recognition": "#4D4DFF"
       }
     }
   ],
