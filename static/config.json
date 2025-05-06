@@ -21,6 +21,7 @@
         "bg-accent-primary-alpha": "#5C8DEA2B",
         "bg-accent-secondary-alpha": "#37BABC26",
         "bg-accent-tertiary-alpha": "#A972FF2B",
+        "bg-overlay": "#090D13B3",
 
         "text-primary": "#F3F4F6",
         "text-secondary": "#7F8792",
@@ -101,6 +102,7 @@
         "bg-accent-primary-alpha": "#2764d91A",
         "bg-accent-secondary-alpha": "#009D9F1A",
         "bg-accent-tertiary-alpha": "#843EF31A",
+        "bg-overlay": "#fcfcfc4d",
 
         "text-primary": "#141A23",
         "text-secondary": "#7F8792",
