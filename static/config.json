@@ -21,6 +21,7 @@
         "bg-accent-primary-alpha": "#5C8DEA2B",
         "bg-accent-secondary-alpha": "#37BABC26",
         "bg-accent-tertiary-alpha": "#A972FF2B",
+        "bg-overlay": "#090D13B3",
 
         "text-primary": "#F3F4F6",
         "text-secondary": "#7F8792",
@@ -95,12 +96,13 @@
         "bg-warning": "#FAF0CF",
         "bg-info": "#D3DFF5",
         "bg-success": "#CEEBEE",
-        "bg-accent-primary": "#2764d9",
+        "bg-accent-primary": "#2764D9",
         "bg-accent-secondary": "#009D9F",
         "bg-accent-tertiary": "#843EF3",
-        "bg-accent-primary-alpha": "#2764d91A",
+        "bg-accent-primary-alpha": "#2764D91A",
         "bg-accent-secondary-alpha": "#009D9F1A",
         "bg-accent-tertiary-alpha": "#843EF31A",
+        "bg-overlay": "#FCFCFC4D",
 
         "text-primary": "#141A23",
         "text-secondary": "#7F8792",
