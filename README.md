@@ -113,7 +113,7 @@ You can customize color palettes in the `colors` property for each object in the
 
 ## Colors for the Sign in Page (authColors)
 
-The authColors property allows you to define custom color palettes specifically for the Sign in page. These colors can be used to style login, registration, and other authentication screens.
+The `authColors` property allows you to define custom color palettes specifically for the Sign in page. These colors can be used to style login, registration, and other authentication screens.
 
 ```json
 {
@@ -132,10 +132,10 @@ The authColors property allows you to define custom color palettes specifically 
 
 ## Customizing Banner Images (banners)
 
-To customize banner images you can provide image URLs inside the desired theme object:
+To customize banner images, you can provide image URLs inside the desired theme object:
 
-1. Locate or create the banners property inside the desired theme object in config.json.
-2. Update or add the my-workspace-banner and marketplace-banner values with the relative path or full URL of your custom images.
+1. Locate or create the `banners` property inside the desired theme object in config.json.
+2. Update or add values for `my-workspace-banner` and `marketplace-banner` with the relative path or full URL of your custom images.
 
 ```json
 {
