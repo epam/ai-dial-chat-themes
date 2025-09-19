@@ -83,10 +83,6 @@
       "authColors": {
         "bg-auth-layer-0": "#F7F6F5",
         "bg-auth-layer-1": "#333451"
-      },
-      "banners":{
-        "my-workspace-banner": "welcome-dark-my-apps.jpg",
-        "marketplace-banner": "welcome-dark.jpg"
       }
     },
     {
@@ -171,10 +167,6 @@
       "authColors": {
         "bg-auth-layer-0": "#DDD",
         "bg-auth-layer-1": "#FAFFAF"
-      },
-      "banners":{
-        "my-workspace-banner": "welcome-light-my-apps.jpg",
-        "marketplace-banner": "welcome-light.jpg"
       }
     }
   ],
