@@ -172,6 +172,7 @@
   ],
   "images": {
     "default-model": "message-square-lines-alt.svg",
+    "default-addon": "message-square-lines-alt.svg",
     "default-toolset": "default-toolset.svg",
     "favicon": "favicon.png"
   }
