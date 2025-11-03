@@ -24,6 +24,8 @@ server {
         sendfile on;
         tcp_nopush on;
         tcp_nodelay on;
+        autoindex on;
+        autoindex_format json;
         add_header Cache-Control "public";
         add_header Access-Control-Allow-Origin "*";
     }
