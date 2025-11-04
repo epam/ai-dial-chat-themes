@@ -8,7 +8,7 @@
         </a>
     </p>
 <h4 align="center">
-    <a href="https://discord.gg/TMMwWkEYzS">
+    <a href="https://discord.gg/ukzj9U9tEe">
         <img src="https://img.shields.io/static/v1?label=AI%20DIALX%20Community%20in&message=Discord&color=blue&logo=Discord&style=flat-square" alt="Discord">
     </a>
 </h4>
@@ -32,7 +32,7 @@
 > [!NOTE]
 > A theme is a collection of static resources including images, fonts, and color palettes that you can utilize to personalize the appearance of your [AI DIAL Chat](https://github.com/epam/ai-dial-chat) application. These resources can be stored anywhere and accessed by the chat application via the internet. We provide the AI DIAL Chat Themes service as a convenient method for hosting these static resources and making them accessible for the chat application(s). However, you have the flexibility to choose your own method for accomplishing this. 
 > 
-> This approach, having static resources externally, enables developers and designers to work concurrently and implement changes to themes without without having to rebuild the the chat application Docker image.
+> This approach, having static resources externally, enables developers and designers to work concurrently and implement changes to themes without having to rebuild the chat application Docker image.
 
 > [!IMPORTANT]
 > **Note**: after making changes into themes, it is necessary to restart the chat application to apply changes.
