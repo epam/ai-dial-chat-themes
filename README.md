@@ -9,7 +9,7 @@
     </p>
 <h4 align="center">
     <a href="https://discord.gg/ukzj9U9tEe">
-        <img src="https://img.shields.io/static/v1?label=AI%20DIALX%20Community%20in&message=Discord&color=blue&logo=Discord&style=flat-square" alt="Discord">
+        <img src="https://img.shields.io/static/v1?label=DIALX%20Community%20on&message=Discord&color=blue&logo=Discord&style=flat-square" alt="Discord">
     </a>
 </h4>
 
@@ -131,7 +131,7 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
 ```
 
 > [!IMPORTANT]
-> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. 
+> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. 
 
 ### Customize Theme Colors
 
