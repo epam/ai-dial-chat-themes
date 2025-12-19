@@ -49,8 +49,20 @@
         "controls-bg-accent-hover": "#4878D2",
         "controls-bg-disable": "#7F8792",
 
+        "controls-bg-solid-primary": "#3970DA",
+        "controls-bg-solid-primary-hover": "#215DD0",
+        "controls-bg-solid-error": "#CC4545",
+        "controls-bg-solid-error-hover": "#AE2F2F",
+        "controls-bg-solid-disable": "#69727C",
+        "controls-bg-outlined-neutral-hover": "#333942",
+
+        "controls-text-solid": "#FCFCFC",
+        "controls-text-solid-disable": "#333942",
+        "controls-text-outlined": "#FCFCFC",
+        "controls-text-link-primary-hover": "#3970DA",
+
         "controls-text-permanent": "#FCFCFC",
-        "controls-text-disable": "#424952",
+        "controls-text-disable": "#5B6570",
         "bg-model-icon": "#FFFFFF"
       },
       "topicColors": {
@@ -134,8 +146,20 @@
         "controls-bg-accent-hover": "#4878D2",
         "controls-bg-disable": "#7F8792",
 
+        "controls-bg-solid-primary": "#215DD0",
+        "controls-bg-solid-primary-hover": "#3970DA",
+        "controls-bg-solid-error": "#AE2F2F",
+        "controls-bg-solid-error-hover": "#CC4545",
+        "controls-bg-solid-disable": "#808997",
+        "controls-bg-outlined-neutral-hover": "#DDE1E6",
+
+        "controls-text-solid": "#FCFCFC",
+        "controls-text-solid-disable": "#DDE1E6",
+        "controls-text-outlined": "#141A23",
+        "controls-text-link-primary-hover": "#3970DA",
+
         "controls-text-permanent": "#FCFCFC",
-        "controls-text-disable": "#C3C9D0"
+        "controls-text-disable": "#9AA2AD"
       },
       "topicColors": {
         "bg-topic-default": "#5C8DEA2B",
