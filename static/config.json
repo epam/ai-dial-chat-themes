@@ -189,9 +189,9 @@
         "stroke-topic-image-generation": "#FF6B00",
         "bg-topic-image-recognition": "#4D4DFF26",
         "stroke-topic-image-recognition": "#4D4DFF",
-        "bd-topic-compliance-legal-tax": "#6C902626",
+        "bg-topic-compliance-legal-tax": "#6C902626",
         "stroke-topic-compliance-legal-tax": "#60D239",
-        "bd-topic-test-topic-with-2-comma": "#C7925A26",
+        "bg-topic-test-topic-with-2-comma": "#C7925A26",
         "stroke-topic-test-topic-with-2-comma": "#FF6B00"
 
       },
