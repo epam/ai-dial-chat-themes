@@ -188,7 +188,12 @@
         "bg-topic-image-generation": "#FF6B0026",
         "stroke-topic-image-generation": "#FF6B00",
         "bg-topic-image-recognition": "#4D4DFF26",
-        "stroke-topic-image-recognition": "#4D4DFF"
+        "stroke-topic-image-recognition": "#4D4DFF",
+        "bd-topic-compliance-legal-tax": "#6C902626",
+        "stroke-topic-compliance-legal-tax": "#60D239",
+        "bd-topic-test-topic-with-2-comma": "#C7925A26",
+        "stroke-topic-test-topic-with-2-comma": "#FF6B00"
+
       },
       "authColors": {
         "bg-auth-layer-0": "#EAEDF0",
