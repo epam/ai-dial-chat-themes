@@ -36,7 +36,7 @@
         "text-accent-tertiary": "#A972FF",
 
         "stroke-primary": "#69727C",
-        "stroke-secondary": "#222932",
+        "stroke-secondary": "#333942",
         "stroke-tertiary": "#090D13",
         "stroke-error": "#F76464",
         "stroke-warning": "#EEC840",
@@ -126,9 +126,9 @@
         "text-error": "#AE2F2F",
         "text-warning": "#846700",
         "text-warning-icon": "#EEC840",
-        "text-info": "#215DD0",
+        "text-info": "#1252CE",
         "text-success": "#007779",
-        "text-accent-primary": "#215DD0",
+        "text-accent-primary": "#1252CE",
         "text-accent-secondary": "#007779",
         "text-accent-tertiary": "#843EF3",
 
@@ -138,9 +138,9 @@
         "stroke-hover": "#141A23",
         "stroke-error": "#AE2F2F",
         "stroke-warning": "#EEC840",
-        "stroke-info": "#215DD0",
+        "stroke-info": "#1252CE",
         "stroke-success": "#007779",
-        "stroke-accent-primary": "#215DD0",
+        "stroke-accent-primary": "#1252CE",
         "stroke-accent-secondary": "#007779",
         "stroke-accent-tertiary": "#843EF3",
 
