@@ -51,19 +51,19 @@
         "controls-bg-accent-hover": "#4878D2",
         "controls-bg-disable": "#7F8792",
 
-        "controls-bg-solid-primary": "#3970DA",
-        "controls-bg-solid-primary-hover": "#215DD0",
-        "controls-bg-solid-error": "#CC4545",
-        "controls-bg-solid-error-hover": "#BF3939",
-        "controls-bg-solid-disable": "#69727C",
-        "controls-bg-outlined-neutral-hover": "#333942",
-
-        "controls-text-solid": "#FCFCFC",
-        "controls-text-solid-disable": "#333942",
-        "controls-text-outlined": "#FCFCFC",
-        "controls-text-link-primary-hover": "#3970DA",
+        "controls-bg-accent-primary": "#3970DA",
+        "controls-bg-accent-primary-hover": "#215DD0",
+        "controls-bg-error": "#CC4545",
+        "controls-bg-error-hover": "#BF3939",
+        "controls-bg-disable-accent": "#69727C",
+        "controls-bg-neutral-hover": "#333942",
 
         "controls-text-permanent": "#FCFCFC",
+        "controls-text-permanent-disable": "#333942",
+        "controls-text-neutral": "#FCFCFC",
+        "controls-text-accent-primary-hover": "#3970DA",
+        "controls-secondary-text-disable": "#5B6570",
+
         "controls-text-disable": "#5B6570"
       },
       "topicColors": {
@@ -148,19 +148,19 @@
         "controls-bg-accent-hover": "#4878D2",
         "controls-bg-disable": "#7F8792",
 
-        "controls-bg-solid-primary": "#1252CE",
-        "controls-bg-solid-primary-hover": "#215DD0",
-        "controls-bg-solid-error": "#AE2F2F",
-        "controls-bg-solid-error-hover": "#BF3939",
-        "controls-bg-solid-disable": "#808997",
-        "controls-bg-outlined-neutral-hover": "#DDE1E6",
-
-        "controls-text-solid": "#FCFCFC",
-        "controls-text-solid-disable": "#DDE1E6",
-        "controls-text-outlined": "#141A23",
-        "controls-text-link-primary-hover": "#3970DA",
+        "controls-bg-accent-primary": "#1252CE",
+        "controls-bg-accent-primary-hover": "#215DD0",
+        "controls-bg-error": "#AE2F2F",
+        "controls-bg-error-hover": "#BF3939",
+        "controls-bg-disable-accent": "#808997",
+        "controls-bg-neutral-hover": "#DDE1E6",
 
         "controls-text-permanent": "#FCFCFC",
+        "controls-text-permanent-disable": "#DDE1E6",
+        "controls-text-neutral": "#141A23",
+        "controls-text-accent-primary-hover": "#3970DA",
+        "controls-secondary-text-disable": "#9AA2AD",
+
         "controls-text-disable": "#9AA2AD"
       },
       "topicColors": {
