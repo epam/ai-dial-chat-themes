@@ -54,7 +54,7 @@
         "controls-bg-solid-primary": "#3970DA",
         "controls-bg-solid-primary-hover": "#215DD0",
         "controls-bg-solid-error": "#CC4545",
-        "controls-bg-solid-error-hover": "#AE2F2F",
+        "controls-bg-solid-error-hover": "#BF3939",
         "controls-bg-solid-disable": "#69727C",
         "controls-bg-outlined-neutral-hover": "#333942",
 
@@ -148,10 +148,10 @@
         "controls-bg-accent-hover": "#4878D2",
         "controls-bg-disable": "#7F8792",
 
-        "controls-bg-solid-primary": "#215DD0",
-        "controls-bg-solid-primary-hover": "#3970DA",
+        "controls-bg-solid-primary": "#1252CE",
+        "controls-bg-solid-primary-hover": "#215DD0",
         "controls-bg-solid-error": "#AE2F2F",
-        "controls-bg-solid-error-hover": "#CC4545",
+        "controls-bg-solid-error-hover": "#BF3939",
         "controls-bg-solid-disable": "#808997",
         "controls-bg-outlined-neutral-hover": "#DDE1E6",
 
@@ -193,7 +193,6 @@
         "stroke-topic-compliance-legal-tax": "#60D239",
         "bg-topic-test-topic-with-2-comma": "#C7925A26",
         "stroke-topic-test-topic-with-2-comma": "#FF6B00"
-
       },
       "authColors": {
         "bg-auth-layer-0": "#EAEDF0",
