@@ -34,6 +34,7 @@
 - `controls-bg-outlined-neutral-hover` → `controls-bg-neutral-hover`
 - `controls-text-solid` → `controls-text-permanent`
 - `controls-text-solid-disable` → `controls-text-primary-disable`
+- `controls-text-outlined` → `controls-text-neutral`
 - `controls-text-link-primary-hover` → `controls-text-accent-primary-hover`
 
 
