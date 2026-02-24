@@ -3,6 +3,8 @@
 
 ### Added
 
+- `stroke-focus`
+
 - New button background tokens:
   - `controls-bg-accent-primary-active`
   - `controls-bg-accent-primary-alpha-active`
