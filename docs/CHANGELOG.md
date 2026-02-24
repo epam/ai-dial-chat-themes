@@ -37,7 +37,7 @@
 - `controls-text-outlined` → `controls-text-neutral`
 - `controls-text-link-primary-hover` → `controls-text-accent-primary-hover`
 
-
+![alt text](./images/rename-tokens-0.14.png)
 ## 0.13.0
 
 ### Added
