@@ -62,8 +62,3 @@
   - `controls-text-link-primary-hover`
 
 ---
-
-### Removed
-
-- Deprecated token:
-  - `bg-model-icon`
