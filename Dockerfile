@@ -1,4 +1,4 @@
-FROM nginxinc/nginx-unprivileged:1.29-alpine3.23-perl
+FROM nginxinc/nginx-unprivileged:1.29-alpine
 RUN rm /etc/nginx/conf.d/default.conf
 COPY static /var/www
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
