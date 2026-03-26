@@ -1,0 +1,17 @@
+otel_trace on;
+otel_service_name $OTEL_SERVICE_NAME;
+
+otel_exporter {
+    endpoint $OTEL_EXPORTER_OTLP_ENDPOINT;
+    interval 5s;
+    batch_size 512;
+}
+
+otel_trace_context inject;
+
+log_format main_otel '$remote_addr - $remote_user [$time_local] "$request" '
+                     '$status $body_bytes_sent "$http_referer" '
+                     '"$http_user_agent" "$http_x_forwarded_for" '
+                     'trace_id=$otel_trace_id span_id=$otel_span_id';
+
+access_log /dev/stdout main_otel;

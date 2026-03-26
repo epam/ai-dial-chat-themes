@@ -1,8 +1,8 @@
 server {
     listen 8080;
+    otel_span_name "main_server_block";
     large_client_header_buffers 4 16k;
 
-    error_log /var/log/nginx/error.log;
     root /var/www;
 
     client_body_buffer_size 1K;
@@ -28,10 +28,13 @@ server {
         autoindex_format json;
         add_header Cache-Control "public";
         add_header Access-Control-Allow-Origin "*";
+        
+        otel_trace_context propagate; 
     }
 
     location = /health {
         access_log off;
+        otel_trace off; 
         add_header 'Content-Type' 'application/json';
         return 200 '{"status":"ok"}';
     }
