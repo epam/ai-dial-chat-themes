@@ -14,6 +14,7 @@
 </h4>
 
 - [Overview](#overview)
+- [OTEL Integration](#otel-integration)
 - [Set Up Developer Environment](#set-up-developer-environment)
   - [Build](#build)
   - [Run](#run)
@@ -41,6 +42,21 @@
 > Chat application users can then select themes in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
 
 ---
+## OTEL Integration
+
+Added for your Env variables the next variables with the propper values. Trigger a redeploy your Themes instance
+
+```bash
+  OTEL_EXPORTER_OTLP_ENDPOINT: "<otlp_endpoint_url>" # OTEL endpoint URL
+  OTEL_EXPORTER_OTLP_PROTOCOL: "<otlp_exporter_otlp_protocol>" # Specifies the OTLP transport protocol to be used for all telemetry data.
+  OTEL_SERVICE_NAME: "<service_name>" # Key-value pairs to be used as resource attributes
+```
+
+> [!TIP]
+> Reffer to the Offical [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/) documentation for more details.
+
+> [!TIP]
+> Reffer to the DIAL [Observability and Monitoring](https://docs.dialx.ai/tutorials/devops/observability-config) documentation for more details.
 
 ## Set Up Developer Environment
 
