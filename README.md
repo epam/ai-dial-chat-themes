@@ -44,19 +44,22 @@
 ---
 ## OTEL Integration
 
-Added for your Env variables the next variables with the propper values. Trigger a redeploy your Themes instance
+Added for your Env variables the next variables with the proper values. Trigger a redeploy of your Themes instance.
 
 ```bash
   OTEL_EXPORTER_OTLP_ENDPOINT: "<otlp_endpoint_url>" # OTEL endpoint URL
   OTEL_EXPORTER_OTLP_PROTOCOL: "<otlp_exporter_otlp_protocol>" # Specifies the OTLP transport protocol to be used for all telemetry data.
-  OTEL_SERVICE_NAME: "<service_name>" # Key-value pairs to be used as resource attributes
+  OTEL_SERVICE_NAME: "<service_name>" # Key-value pairs to be used as resource attributes, default values ai-dial-chat-themes. The value can be overridden if necessary.
 ```
 
 > [!TIP]
-> Reffer to the Offical [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/) documentation for more details.
+> Refer to the Offical [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/) documentation for more details.
 
 > [!TIP]
-> Reffer to the DIAL [Observability and Monitoring](https://docs.dialx.ai/tutorials/devops/observability-config) documentation for more details.
+> Refer to the DIAL [Observability and Monitoring](https://docs.dialx.ai/tutorials/devops/observability-config) documentation for more details.
+
+> [!TIP]
+> Refer to the Offical [Module ngx_otel_module](https://nginx.org/en/docs/ngx_otel_module.html#variables) documentation for more details.
 
 ## Set Up Developer Environment
 
