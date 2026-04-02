@@ -48,7 +48,6 @@ Added for your Env variables the next variables with the proper values. Trigger 
 
 ```bash
   OTEL_EXPORTER_OTLP_ENDPOINT: "<otlp_endpoint_url>" # OTEL endpoint URL
-  OTEL_EXPORTER_OTLP_PROTOCOL: "<otlp_exporter_otlp_protocol>" # Specifies the OTLP transport protocol to be used for all telemetry data.
   OTEL_SERVICE_NAME: "<service_name>" # Key-value pairs to be used as resource attributes, default values ai-dial-chat-themes. The value can be overridden if necessary.
 ```
 
