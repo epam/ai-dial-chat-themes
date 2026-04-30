@@ -20,19 +20,17 @@
   - [Run](#run)
 - [Helm Deployment and Configuration](#helm-deployment-and-configuration)
 - [Working with Themes](#working-with-themes)
-    - [Add Theme](#add-theme)
-    - [Customize Image URLs](#customize-image-urls)
-    - [Customize Theme Colors](#customize-theme-colors)
-    - [Colors for the Sign in Page (authColors)](#colors-for-the-sign-in-page-authColors)
-    - [Customizing Banner Images (banners)](#customizing-banner-images-banners)
-
----
+  - [Add Theme](#add-theme)
+  - [Customize Image URLs](#customize-image-urls)
+  - [Customize Theme Colors](#customize-theme-colors)
+  - [Colors for the Sign in Page (authColors)](#colors-for-the-sign-in-page-authcolors)
+  - [Customizing Banner Images (banners)](#customizing-banner-images-banners)
 
 ## Overview
 
 > [!NOTE]
-> A theme is a collection of static resources including images, fonts, and color palettes that you can utilize to personalize the appearance of your [AI DIAL Chat](https://github.com/epam/ai-dial-chat) application. These resources can be stored anywhere and accessed by the chat application via the internet. We provide the AI DIAL Chat Themes service as a convenient method for hosting these static resources and making them accessible for the chat application(s). However, you have the flexibility to choose your own method for accomplishing this. 
-> 
+> A theme is a collection of static resources including images, fonts, and color palettes that you can utilize to personalize the appearance of your [AI DIAL Chat](https://github.com/epam/ai-dial-chat) application. These resources can be stored anywhere and accessed by the chat application via the internet. We provide the AI DIAL Chat Themes service as a convenient method for hosting these static resources and making them accessible for the chat application(s). However, you have the flexibility to choose your own method for accomplishing this.
+>
 > This approach, having static resources externally, enables developers and designers to work concurrently and implement changes to themes without having to rebuild the chat application Docker image.
 
 > [!IMPORTANT]
@@ -41,7 +39,6 @@
 > [!TIP]
 > Chat application users can then select themes in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
 
----
 ## OTEL Integration
 
 Added for your Env variables the next variables with the proper values. Trigger a redeploy of your Themes instance.
@@ -52,13 +49,13 @@ Added for your Env variables the next variables with the proper values. Trigger 
 ```
 
 > [!TIP]
-> Refer to the Offical [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/) documentation for more details.
+> Refer to the Official [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/) documentation for more details.
 
 > [!TIP]
 > Refer to the DIAL [Observability and Monitoring](https://docs.dialx.ai/tutorials/devops/observability-config) documentation for more details.
 
 > [!TIP]
-> Refer to the Offical [Module ngx_otel_module](https://nginx.org/en/docs/ngx_otel_module.html#variables) documentation for more details.
+> Refer to the Official [Module ngx_otel_module](https://nginx.org/en/docs/ngx_otel_module.html#variables) documentation for more details.
 
 ## Set Up Developer Environment
 
@@ -74,28 +71,22 @@ make build
 
 ### Run
 
-Execute this command to run the Docker container and bind the container port 8080 to the host network interface `localhost:80`
+Execute this command to run the Docker container available at `http://localhost:8080`:
 
 ```bash
 make run
 ```
 
----
-
 ## Helm Deployment and Configuration
 
 1. You can deploy AI DIAL Chat Themes service using a common [dial](https://github.com/epam/ai-dial-helm/tree/main/charts/dial) Helm chart or using a stand-alone chart [dial-extension](https://github.com/epam/ai-dial-helm/tree/main/charts/dial-extension).
-    
-> [!TIP]
-> Refer to [AI DIAL Helm](https://github.com/epam/ai-dial-helm) to learn about the deployment options and view the examples of charts.
 
-2. In the [config.json](./static/config.json) file, you can define and configure custom themes or use (edit) default ones. Images can be stored in the **static** folder as well. However, you can store images anywhere and provide URLs in the config file.
+    > [!TIP]
+    > Refer to [AI DIAL Helm](https://github.com/epam/ai-dial-helm) to learn about the deployment options and view the examples of charts.
 
-3. Further, it is necessary to configure AI DIAL Chat to access the static resources and the themes configuration. To do that, add `THEMES_CONFIG_HOST` to the chat configuration - refer to [documentation](https://github.com/epam/ai-dial-chat/blob/development/apps/chat/README.md) for details. `THEMES_CONFIG_HOST` environment variable contains the URL to your nginx server with the configuration and images (this is the case when you use AI DIAL Chat Themes to provide static resoures for the chat application). This ensures that the application fetches your configuration file during loading. If the environment variable is not provided, [default themes and model icons]((./static/config.json)) will be applied.
-
-4. After applying changes, it is necessary to redeploy the themes server. Changes will take effect automatically on the chat UI after 24hrs or upon the page reload. All the configured themes will be available in the chat application in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
-
----
+1. In the [config.json](./static/config.json) file, you can define and configure custom themes or use (edit) default ones. Images can be stored in the **static** folder as well. However, you can store images anywhere and provide URLs in the config file.
+1. Further, it is necessary to configure AI DIAL Chat to access the static resources and the themes configuration. To do that, add `THEMES_CONFIG_HOST` to the chat configuration - refer to [documentation](https://github.com/epam/ai-dial-chat/blob/development/apps/chat/README.md) for details. `THEMES_CONFIG_HOST` environment variable contains the URL to your nginx server with the configuration and images (this is the case when you use AI DIAL Chat Themes to provide static resources for the chat application). This ensures that the application fetches your configuration file during loading. If the environment variable is not provided, [default themes and model icons]((./static/config.json)) will be applied.
+1. After applying changes, it is necessary to redeploy the themes server. Changes will take effect automatically on the chat UI after 24hrs or upon the page reload. All the configured themes will be available in the chat application in [user settings](https://github.com/epam/ai-dial/blob/main/docs/user-guide.md#user-settings).
 
 ## Working with Themes
 
@@ -149,7 +140,7 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
 ```
 
 > [!IMPORTANT]
-> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. 
+> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`.
 
 ### Customize Theme Colors
 
@@ -200,9 +191,9 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
 
 > [!NOTE]
 > To customize banner images, you can provide image URLs inside the desired theme object:
-> 
+>
 > 1. Locate or create the `banners` property inside the desired theme object in config.json.
-> 2. Update or add values for `my-workspace-banner` and `marketplace-banner` with the relative path or full URL of your custom images.
+> 1. Update or add values for `my-workspace-banner` and `marketplace-banner` with the relative path or full URL of your custom images.
 
 ```json
 {
@@ -218,5 +209,3 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
   ]
 }
 ```
-
----
