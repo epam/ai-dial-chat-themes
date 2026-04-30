@@ -135,8 +135,8 @@ make run
     "admin-logo-light": "", //light theme logo for DIAL Admin
     "admin-logo-dark": "", //dark theme logo for DIAL Admin
     "admin-favicon": "", //favicon for DIAL Admin
-    "chat-logo-light": "", //dark theme logo for DIAL Chat
-    "chat-logo-dark": "", //light theme logo for DIAL Chat
+    "chat-logo-light": "", //light theme logo for DIAL Chat
+    "chat-logo-dark": "", //dark theme logo for DIAL Chat
     "chat-favicon": "", //favicon for DIAL Chat
   }
 }
