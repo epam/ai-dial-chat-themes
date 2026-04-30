@@ -1,4 +1,29 @@
 # Ai Dial Themes Change Log
+
+## 0.15.0
+
+### ⚠️ Breaking Changes
+- Removed 'app-logo' from theme config
+- Removed default favicon from theme images
+
+### Added
+
+- New fields for theme images:
+  - 'admin-logo-light'
+  - 'admin-logo-dark'
+  - 'admin-favicon'
+  - 'chat-logo-light'
+  - 'chat-logo-dark'
+  - 'chat-favicon'
+
+- New images for:
+  - DIAL Admin logo and favicon
+  - DIAL Chat logo and favicon
+
+### Updated
+
+- Updated icons for DIAL products
+
 ## 0.14.0
 
 ### Added

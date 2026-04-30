@@ -3,7 +3,6 @@
     {
       "displayName": "Dark",
       "id": "dark",
-      "app-logo": "",
       "colors": {
         "bg-layer-0": "#000000",
         "bg-layer-1": "#0C101D",
@@ -114,11 +113,6 @@
     {
       "displayName": "Light",
       "id": "light",
-      "app-logo": "",
-      "admin-logo": "",
-      "admin-favicon": "",
-      "chat-logo": "",
-      "chat-favicon": "",
       "colors": {
         "bg-layer-0": "#FCFCFC",
         "bg-layer-1": "#E0E6F0",
@@ -233,7 +227,6 @@
   "images": {
     "default-model": "message-square-lines-alt.svg",
     "default-addon": "message-square-lines-alt.svg",
-    "favicon": "favicon.png",
     "admin-logo-light": "admin-logo-light.svg",
     "admin-logo-dark": "admin-logo-dark.svg",
     "admin-favicon": "admin-favicon.png",
