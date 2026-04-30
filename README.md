@@ -134,6 +134,14 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
     // common for all themes image urls
     "default-model": "", //default icon for applications without a custom icon configured
     "default-addon": "", //default icon for addons without a custom icon configured
+    
+    "admin-logo-light": "", //dark theme logo for DIAL Admin
+    "admin-logo-dark": "", //light theme logo for DIAL Admin
+    "admin-favicon": "", //favicon for DIAL Admin
+    "chat-logo-light": "", //dark theme logo for DIAL Chat
+    "chat-logo-dark": "", //light theme logo for DIAL Chat
+    "chat-favicon": "",//favicon for DIAL Chat
+
     "favicon": "favicon.png" // Chat application favicon
   }
 }
