@@ -3,18 +3,18 @@
 ## 0.15.0
 
 ### ⚠️ Breaking Changes
-- Removed 'app-logo' from theme config
+- Removed `app-logo` from theme config
 - Removed default favicon from theme images
 
 ### Added
 
 - New fields for theme images:
-  - 'admin-logo-light'
-  - 'admin-logo-dark'
-  - 'admin-favicon'
-  - 'chat-logo-light'
-  - 'chat-logo-dark'
-  - 'chat-favicon'
+  - `admin-logo-light`
+  - `admin-logo-dark`
+  - `admin-favicon`
+  - `chat-logo-light`
+  - `chat-logo-dark`
+  - `chat-favicon`
 
 - New images for:
   - DIAL Admin logo and favicon
