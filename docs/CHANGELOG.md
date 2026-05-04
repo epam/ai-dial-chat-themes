@@ -3,8 +3,11 @@
 ## 0.15.0
 
 ### ⚠️ Breaking Changes
-- Removed `app-logo` from theme config
-- Removed default favicon from theme images
+- Removed `app-logo` from theme config¹
+- Removed default favicon from theme images¹
+
+¹ DIAL Admin and DIAL Chat applications will include a fallback mechanism to prevent failures.
+
 
 ### Added
 
