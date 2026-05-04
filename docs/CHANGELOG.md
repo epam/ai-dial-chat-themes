@@ -1,6 +1,6 @@
 # Ai Dial Themes Change Log
 
-## 0.15.0
+## 0.16.0
 
 ### ⚠️ Breaking Changes
 - Removed `app-logo` from theme config¹
