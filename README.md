@@ -107,7 +107,6 @@ make run
     {
       "displayName": "Light",   // Displayed name in settings modal on UI
       "id": "light",            // Some kebab case id name
-      "app-logo": "logo.svg",   // URL for website logo displayed
       "colors": {
         // Semantic colors which commonly used across entire application.
         // See default configuration to check available colors
@@ -117,8 +116,6 @@ make run
     // Other themes
   ],
 ```
-
-The URL for `app-logo` will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`. You can also specify a full path to your images like `https://some-path.svg`, if you are hosting them at the external source.
 
 ### Customize Image URLs
 
@@ -134,13 +131,19 @@ The URL for `app-logo` will be recognized as a relative URL and transformed into
     // common for all themes image urls
     "default-model": "", //default icon for applications without a custom icon configured
     "default-addon": "", //default icon for addons without a custom icon configured
-    "favicon": "favicon.png" // Chat application favicon
+    
+    "admin-logo-light": "", //light theme logo for DIAL Admin
+    "admin-logo-dark": "", //dark theme logo for DIAL Admin
+    "admin-favicon": "", //favicon for DIAL Admin
+    "chat-logo-light": "", //light theme logo for DIAL Chat
+    "chat-logo-dark": "", //dark theme logo for DIAL Chat
+    "chat-favicon": "", //favicon for DIAL Chat
   }
 }
 ```
 
 > [!IMPORTANT]
-> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/app-logo.svg`.
+> Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/icon.svg`.
 
 ### Customize Theme Colors
 
