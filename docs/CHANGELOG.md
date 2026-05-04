@@ -1,9 +1,6 @@
 # Ai Dial Themes Change Log
 
 ## 0.16.0
-- Update DIAL Chat and DIAL Admin favicon images in correct size and quality
-
-## 0.15.0
 
 ### ⚠️ Breaking Changes
 - Removed `app-logo` from theme config¹
