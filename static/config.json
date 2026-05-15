@@ -23,6 +23,7 @@
         "bg-model-icon": "#FFFFFF",
         "bg-overlay": "#090D13B3",
         "bg-neutral": "#1D2439",
+        "bg-inverted": "#EEF1F7",
   
         "text-primary": "#EEF1F7",
         "text-secondary": "#9FA6BD",
@@ -133,6 +134,7 @@
         "bg-accent-tertiary-alpha": "#A972FF2E",
         "bg-overlay": "#FCFCFC4D",
         "bg-neutral": "#FCFCFC",
+        "bg-inverted": "#161B2D",
 
         "text-primary": "#161B2D",
         "text-secondary": "#575F73",
