@@ -1,5 +1,10 @@
-
 # libcrypto3 libssl3
 CVE-2026-45186 exp:2026-05-20
+
+<<<<<<< Updated upstream
 CVE-2026-45447 exp:2026-05-20
 CVE-2026-6732  exp:2026-05-20
+=======
+CVE-2026-45447  exp:2026-09-20
+CVE-2026-6732  exp:2026-09-20
+>>>>>>> Stashed changes
