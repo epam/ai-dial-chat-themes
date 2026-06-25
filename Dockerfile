@@ -1,4 +1,4 @@
-FROM nginxinc/nginx-unprivileged:1.30.1-alpine-otel
+FROM nginxinc/nginx-unprivileged:1.31.2-alpine-otel
 
 RUN rm /etc/nginx/conf.d/default.conf
 
