@@ -24,6 +24,7 @@
         "bg-overlay": "#0C101DB2",
         "bg-neutral": "#1D2439",
         "bg-inverted": "#EEF1F7",
+        
         "text-primary": "#EEF1F7",
         "text-secondary": "#9FA6BD",
         "text-error": "#F76464",
