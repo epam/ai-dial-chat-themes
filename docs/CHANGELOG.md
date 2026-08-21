@@ -1,5 +1,137 @@
 # Ai Dial Themes Change Log
 
+## 0.19.1
+
+Light theme only. Aligns the DIAL 2.0 tokens introduced in 0.19.0 with DIAL UI Kit 0.14.0, where the control tokens were renamed after the **role** they fill instead of their opacity (`alpha`/`beta`) or their literal hue (`blue`).
+
+### ⚠️ Breaking Changes
+
+- Renamed tokens — the 0.19.0 names are removed from the theme:
+  - `bg-control-disable` → `bg-control-disable-primary`¹
+  - `bg-control-neutral-hover` → `bg-control-neutral-hover-muted`
+  - `text-control-disable-alpha` → `text-control-disable-primary`¹
+  - `text-control-disable-beta` → `text-control-disable-secondary`¹
+  - `text-control-blue-hover` → `text-control-accent-hover`
+  - `text-control-blue-active` → `text-control-accent-active`
+  - `shadow-blue-500` → `shadow-blue-500-alpha-20`¹
+
+- Removed token:
+  - `stroke-hover-alpha` — dropped in DIAL UI Kit 0.14.0. It was the same colour as `stroke-accent-alpha` (`#2764D933`), which stays.
+
+¹ The value changed as well — see [Updated](#updated).
+
+DIAL UI Kit 0.14.0 keeps every removed name in its `var()` fallback chain, so applications on the new kit keep rendering the same colours. Applications still on DIAL UI Kit 0.13.0 fall back to the kit defaults, which are identical for every token above except the three marked ¹.
+
+### Added
+
+- Accent gradient background tokens (button and tab gradients):
+  - `bg-gradient-1`
+  - `bg-gradient-1-hover`
+  - `bg-gradient-1-active`
+  - `bg-gradient-2`
+  - `bg-gradient-2-hover`
+  - `bg-gradient-2-active`
+
+- New control background steps:
+  - `bg-control-accent-hover`
+  - `bg-control-neutral-default`
+  - `bg-control-neutral-hover-strong`
+  - `bg-control-inverted`
+  - `bg-control-disable-secondary`
+
+- New control text token:
+  - `text-control-inverted`
+
+- New stroke tokens:
+  - `stroke-default`
+  - `stroke-accent`
+  - `stroke-gradient-1`
+  - `stroke-gradient-2`
+  - `stroke-control-disable-primary`
+
+- New shadow tokens:
+  - `shadow-blue-500-alpha-4`
+  - `shadow-blue-500-alpha-8`
+
+### Updated
+
+- `bg-control-accent`: `#124ACE` → `#1D4ED8` (blue-500)
+- `shadow-blue-500-alpha-20`: `#2764D924` → `#2764D933` (blue-500 alpha-20)
+- Fixed the disabled-control roles, which were swapped in 0.19.0 — the light grey sat on the label and the mid grey on the surface:
+  - `bg-control-disable-primary`: `#848E9C` → `#DCE0E8` (disabled surface, grey-300)
+  - `text-control-disable-primary`: `#DCE0E8` → `#848E9C` (disabled label, grey-600)
+  - `text-control-disable-secondary`: `#848E9C` → `#DCE0E8`
+
+## 0.19.0
+
+### Added
+
+DIAL 2.0 colour tokens, light theme only. The dark theme is unchanged, so DIAL UI Kit 2.0 components fall back to the light defaults there.
+
+- New background layers:
+  - `bg-layer-sunken`
+  - `bg-layer-base`
+  - `bg-layer-raised`
+  - `bg-layer-6`
+  - `bg-layer-7`
+  - `bg-backdrop`
+
+- Control background tokens:
+  - `bg-control-accent`
+  - `bg-control-accent-alpha`
+  - `bg-control-accent-alpha-hover`
+  - `bg-control-accent-alpha-active`
+  - `bg-control-neutral`
+  - `bg-control-neutral-hover`
+  - `bg-control-neutral-active`
+  - `bg-control-error`
+  - `bg-control-error-hover`
+  - `bg-control-error-active`
+  - `bg-control-error-alpha-hover`
+  - `bg-control-error-alpha-active`
+  - `bg-control-disable`
+
+- Visual background tokens:
+  - `bg-visual-blue`
+  - `bg-visual-green-1`
+  - `bg-visual-green-2`
+  - `bg-visual-brown`
+  - `bg-visual-red`
+  - `bg-visual-violet-1`
+  - `bg-visual-violet-2`
+
+- Text tokens:
+  - `text-tertiary`
+  - `text-accent`
+  - `text-control-permanent`
+  - `text-control-disable-alpha`
+  - `text-control-disable-beta`
+  - `text-control-blue-hover`
+  - `text-control-blue-active`
+
+- Visual text tokens:
+  - `text-visual-blue`
+  - `text-visual-green-1`
+  - `text-visual-green-2`
+  - `text-visual-green-3`
+  - `text-visual-brown-1`
+  - `text-visual-brown-2`
+  - `text-visual-red`
+  - `text-visual-violet-1`
+  - `text-visual-violet-2`
+
+- Stroke tokens:
+  - `stroke-hover-alpha`
+  - `stroke-focus-black`
+  - `stroke-focus-blue`
+  - `stroke-accent-alpha`
+  - `stroke-error-alpha`
+
+- Shadow tokens:
+  - `shadow-default`
+  - `shadow-grey-1000`
+  - `shadow-blue-500`
+
 ## 0.16.0
 
 ### ⚠️ Breaking Changes
