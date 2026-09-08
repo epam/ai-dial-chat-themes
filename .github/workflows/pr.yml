@@ -10,5 +10,7 @@ concurrency:
 
 jobs:
   run_tests:
-    uses: epam/ai-dial-ci/.github/workflows/generic_docker_pr.yml@4.9.0
+    uses: epam/ai-dial-ci/.github/workflows/generic_docker_pr.yml@4.11.0
+    with:
+      ort-enabled: false # TODO: enable ORT once the repository uses any of the supported package managers: https://oss-review-toolkit.org/ort/docs/category/package-managers
     secrets: inherit
