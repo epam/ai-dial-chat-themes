@@ -257,6 +257,7 @@
         "stroke-gradient-2": "#885DF2",
         "stroke-focus-black": "#161B2D",
         "stroke-focus-blue": "#6785FB",
+        "stroke-accent-focus": "#6785FB",
         "stroke-error-alpha": "#AE2F2F73",
         "stroke-control-disable-primary": "#848E9C",
 
@@ -264,7 +265,13 @@
         "shadow-grey-1000": "#161B2D08",
         "shadow-blue-500-alpha-4": "#2764D90A",
         "shadow-blue-500-alpha-8": "#2764D914",
-        "shadow-blue-500-alpha-20": "#2764D933"
+        "shadow-blue-500-alpha-20": "#2764D933",
+
+        "shadow-xs-1": "#2764D933",
+        "shadow-xs-2": "#161B2D08",
+        "shadow-sm": "#2764D914",
+        "shadow-md": "#2764D90F",
+        "shadow-lg": "#2764D914"
       },
       "topicColors": {
         "bg-topic-default": "#5C8DEA2B",
