@@ -217,7 +217,7 @@
         "bg-neutral": "#FCFCFC",
         "bg-inverted": "#161B2D",
 
-        "text-primary": "#242A38",
+        "text-primary": "#1B212D",
         "text-secondary": "#57647A",
         "text-error": "#AE2F2F",
         "text-warning": "#7F6300",
@@ -318,7 +318,7 @@
         "text-control-disable-primary": "#57647A",
         "text-control-disable-secondary": "#848E9C",
         "text-control-accent-hover": "#5976E9",
-        "text-control-accent-active": "#6E8AF7",
+        "text-control-accent-active": "#6785FB",
 
         "text-visual-blue": "#1189C8",
         "text-visual-green-1": "#059669",
@@ -337,7 +337,7 @@
         "stroke-gradient-2": "#885DF2",
         "stroke-focus-black": "#161B2D",
         "stroke-focus-blue": "#6785FB",
-        "stroke-accent-focus": "#5976E9",
+        "stroke-accent-focus": "#6785FB",
         "stroke-error-alpha": "#AE2F2F73",
         "stroke-control-disable-primary": "#848E9C",
 
