@@ -1,9 +1,6 @@
-FROM nginxinc/nginx-unprivileged:1.31.6-alpine-otel
+FROM nginxinc/nginx-unprivileged:1.31.6-otel
 
-USER root
-RUN apk upgrade --no-cache expat \
- && rm /etc/nginx/conf.d/default.conf
-USER 101
+RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/*.template /etc/nginx/templates/
