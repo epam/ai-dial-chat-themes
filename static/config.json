@@ -98,7 +98,7 @@
         "bg-control-accent-alpha-active": "#2764D933",
         "bg-control-neutral": "#1B212D",
         "bg-control-neutral-default": "#57647A",
-        "bg-control-neutral-hover-muted": "#242A38",
+        "bg-control-neutral-hover-muted": "#2E3647",
         "bg-control-neutral-hover-strong": "#848E9C",
         "bg-control-neutral-active": "#404A5E",
         "bg-control-inverted": "#ACB3C3",
@@ -330,7 +330,7 @@
         "text-visual-violet-1": "#7C3AED",
         "text-visual-violet-2": "#3730B7",
 
-        "stroke-default": "#B2C2DD",
+        "stroke-default": "#2E3647",
         "stroke-accent": "#1D4ED8",
         "stroke-accent-alpha": "#2764D933",
         "stroke-gradient-1": "#5976E9",
