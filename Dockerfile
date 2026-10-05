@@ -1,6 +1,6 @@
 FROM nginxinc/nginx-unprivileged:1.31.6-alpine-otel
 
-USER root
+USER 0
 RUN apk upgrade --no-cache \
  && rm /etc/nginx/conf.d/default.conf
 USER 101
