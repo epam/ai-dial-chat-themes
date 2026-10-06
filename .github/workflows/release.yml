@@ -18,5 +18,6 @@ jobs:
   release:
     uses: epam/ai-dial-ci/.github/workflows/generic_docker_release.yml@4.3.0
     with:
+      ort-enabled: false # TODO: enable ORT once the repository uses any of the supported package managers: https://oss-review-toolkit.org/ort/docs/category/package-managers
       promote: ${{ github.event_name == 'workflow_dispatch' && inputs.promote }}
     secrets: inherit
