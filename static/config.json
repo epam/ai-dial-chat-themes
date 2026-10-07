@@ -110,7 +110,10 @@
         "bg-control-error-alpha-active": "#F7646433",
         "bg-control-disable-primary": "#404A5E",
         "bg-control-disable-secondary": "#57647A",
-
+        "bg-control-accent-muted": "#192948",
+        "bg-control-accent-alpha-hover-subtle": "#2764D90F",
+        "bg-control-accent-alpha-active-subtle": "#2764D924",
+  
         "bg-visual-blue": "#1D2E44",
         "bg-visual-green-1": "#16312C",
         "bg-visual-green-2": "#162D18",
@@ -302,6 +305,9 @@
         "bg-control-error-alpha-active": "#F7646433",
         "bg-control-disable-primary": "#DCE0E8",
         "bg-control-disable-secondary": "#ACB3C3",
+        "bg-control-accent-muted": "#E1EAF9",
+        "bg-control-accent-alpha-hover-subtle": "#2764D90A",
+        "bg-control-accent-alpha-active-subtle": "#2764D914",
 
         "bg-visual-blue": "#D6EDF9",
         "bg-visual-green-1": "#CDE8E5",
