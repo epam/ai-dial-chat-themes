@@ -14,4 +14,6 @@ jobs:
     with:
       ort-enabled: false # TODO: enable ORT once the repository uses any of the supported package managers: https://oss-review-toolkit.org/ort/docs/category/package-managers
       platforms: "linux/amd64,linux/arm64"
+      trivy-severity: "CRITICAL,HIGH,MEDIUM,LOW"
+      trivy-severity-for-sarif: "CRITICAL,HIGH,MEDIUM,LOW"
     secrets: inherit
