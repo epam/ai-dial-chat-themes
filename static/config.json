@@ -24,7 +24,7 @@
         "bg-overlay": "#0C101DB2",
         "bg-neutral": "#1D2439",
         "bg-inverted": "#EEF1F7",
-        "bg-entity-icon": "#E0E6F0"
+        "bg-entity-icon": "#E0E6F0",
 
         "text-primary": "#FCFCFC",
         "text-secondary": "#ACB3C3",
@@ -283,7 +283,7 @@
         "bg-overlay": "#FCFCFC80",
         "bg-neutral": "#FCFCFC",
         "bg-inverted": "#161B2D",
-        "bg-entity-icon": "#EEF1F7"
+        "bg-entity-icon": "#EEF1F7",
 
         "text-primary": "#1B212D",
         "text-secondary": "#57647A",
