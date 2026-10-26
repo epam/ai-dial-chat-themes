@@ -532,6 +532,9 @@
     "admin-favicon": "admin-favicon.png",
     "chat-logo-light": "chat-logo-light.svg",
     "chat-logo-dark": "chat-logo-dark.svg",
-    "chat-favicon": "chat-favicon.png"
+    "chat-favicon": "chat-favicon.png",
+    "model-garden-logo-light": "model-garden-logo-light.svg",
+    "model-garden-logo-dark": "model-garden-logo-dark.svg",
+    "model-garden-favicon": "model-garden-favicon.svg"
   }
 }

@@ -138,12 +138,23 @@ make run
     "chat-logo-light": "", //light theme logo for DIAL Chat
     "chat-logo-dark": "", //dark theme logo for DIAL Chat
     "chat-favicon": "", //favicon for DIAL Chat
+    "model-garden-logo-light": "", //light appearance logo for Model Garden
+    "model-garden-logo-dark": "", //dark appearance logo for Model Garden
+    "model-garden-favicon": "", //favicon for Model Garden
   }
 }
 ```
 
 > [!IMPORTANT]
 > Specify a full path to your images (e.g. `https://some-path.svg`) if you are hosting them at the external source; otherwise, a path will be recognized as a relative URL and transformed into `{{host}}/icon.svg`.
+
+Model Garden uses `model-garden-logo-light` and `model-garden-logo-dark`
+for its resolved appearance, including when System follows the operating system.
+The supplied SVG files live in `static/`; these optional keys do not change Chat
+or Admin branding. Garden loads relative filenames through its BFF theme-image
+endpoint and uses its bundled light/dark logos when a key or image is unavailable.
+The optional `model-garden-favicon` key specifies the favicon; the supplied SVG
+is `static/model-garden-favicon.svg`.
 
 ### Customize Theme Colors
 
