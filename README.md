@@ -141,6 +141,9 @@ make run
     "model-garden-logo-light": "", //light appearance logo for Model Garden
     "model-garden-logo-dark": "", //dark appearance logo for Model Garden
     "model-garden-favicon": "", //favicon for Model Garden
+    "launchpad-logo-light": "", //light appearance logo for DIAL Launchpad
+    "launchpad-logo-dark": "", //dark appearance logo for DIAL Launchpad
+    "launchpad-favicon": "", //favicon for DIAL Launchpad
   }
 }
 ```
@@ -155,6 +158,14 @@ or Admin branding. Garden loads relative filenames through its BFF theme-image
 endpoint and uses its bundled light/dark logos when a key or image is unavailable.
 The optional `model-garden-favicon` key specifies the favicon; the supplied SVG
 is `static/model-garden-favicon.svg`.
+
+DIAL Launchpad uses `launchpad-logo-dark` only for its `dark` theme, including
+when System follows a dark operating system, and `launchpad-logo-light` for
+every other theme. The supplied SVG files live in `static/`; these optional keys
+do not change Chat, Admin or Model Garden branding. Launchpad loads relative
+filenames through its BFF theme-image endpoint and shows its built-in logo when
+a key or image is unavailable. The optional `launchpad-favicon` key specifies
+the favicon; the supplied SVG is `static/launchpad-favicon.svg`.
 
 ### Customize Theme Colors
 
