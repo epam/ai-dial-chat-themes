@@ -234,3 +234,4 @@ the favicon; the supplied SVG is `static/launchpad-favicon.svg`.
   ]
 }
 ```
+
