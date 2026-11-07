@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "packId": "new-year-default",
+  "version": "1.0.0",
+  "eventId": "new-year",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "viewport-stage-v1",
+    "static-poster-v1"
+  ],
+  "assets": [
+    {
+      "assetId": "new-year-default-bullfinch-couriers-desktop-cba881107779b00a",
+      "file": "bullfinch-couriers.desktop.cba881107779b00a.json",
+      "mediaType": "application/json",
+      "bytes": 104621,
+      "sha256": "cba881107779b00a86b28a9b22827c922a980cc93f69b5a604a17e5020a54552"
+    },
+    {
+      "assetId": "new-year-default-bullfinch-couriers-mobile-42982341030971c0",
+      "file": "bullfinch-couriers.mobile.42982341030971c0.json",
+      "mediaType": "application/json",
+      "bytes": 104629,
+      "sha256": "42982341030971c0df4308952678b6ba75c23b26d58a932d0296f3543410319a"
+    },
+    {
+      "assetId": "new-year-default-bullfinch-couriers-poster-0d82316c42a3fd23",
+      "file": "bullfinch-couriers.poster.0d82316c42a3fd23.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 79185,
+      "sha256": "0d82316c42a3fd23020f93779c29a058300fdbe21ce1c6ad67b20de79b70e941"
+    }
+  ],
+  "labels": {
+    "en": {
+      "bullfinchCouriersToastMessage": "Two couriers, one gingerbread star, only a few bites missing. Send \"{{phrase}}\" in the start-page chat for a secret surprise."
+    }
+  },
+  "scenes": [
+    {
+      "id": "bullfinch-couriers",
+      "labelId": "bullfinchCouriersToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "viewport-stage-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "viewport-stage-v1",
+        "fit": "contain",
+        "align": "bottom"
+      },
+      "direction": "mirror",
+      "timing": {
+        "playbackDurationMs": 14000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 16500
+      },
+      "posterAssetId": "new-year-default-bullfinch-couriers-poster-0d82316c42a3fd23",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-bullfinch-couriers-desktop-cba881107779b00a"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-bullfinch-couriers-mobile-42982341030971c0"
+        }
+      ]
+    }
+  ]
+}
