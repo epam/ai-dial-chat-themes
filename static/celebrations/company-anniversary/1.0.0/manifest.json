@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "packId": "company-anniversary",
+  "version": "1.0.0",
+  "eventId": "company-anniversary",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "viewport-stage-v1",
+    "static-poster-v1",
+    "static-trigger-v1"
+  ],
+  "assets": [
+    {
+      "assetId": "company-anniversary-confetti-desktop-73a56ab7ba655cb5",
+      "file": "confetti.desktop.73a56ab7ba655cb5.json",
+      "mediaType": "application/json",
+      "bytes": 31768,
+      "sha256": "73a56ab7ba655cb5e8ed5dd467288f6c5413ed1c210e2f81de579915e7015830"
+    },
+    {
+      "assetId": "company-anniversary-confetti-poster-05b98b7b88a87a3c",
+      "file": "confetti.poster.05b98b7b88a87a3c.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 3421,
+      "sha256": "05b98b7b88a87a3c1ca4e02ef81290f94f1a62b4d29e5f122ace0cbd7af3e655"
+    },
+    {
+      "assetId": "company-anniversary-icon-11cc4cc1c2a3eba4",
+      "file": "icon.11cc4cc1c2a3eba4.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 697,
+      "sha256": "11cc4cc1c2a3eba42086f55c4ae359fbd6add0d73747b3b151ebaace589aee64"
+    }
+  ],
+  "labels": {
+    "en": {
+      "toastTitle": "Happy anniversary!",
+      "activate": "Play the anniversary celebration",
+      "confettiToastMessage": "Thank you for being part of our story!"
+    }
+  },
+  "event": {
+    "titleLabelId": "toastTitle",
+    "clickSceneIds": [
+      "confetti"
+    ],
+    "iconAssetId": "company-anniversary-icon-11cc4cc1c2a3eba4",
+    "decoration": {
+      "template": "static-trigger-v1",
+      "posterAssetId": "company-anniversary-icon-11cc4cc1c2a3eba4",
+      "labelId": "activate"
+    }
+  },
+  "scenes": [
+    {
+      "id": "confetti",
+      "labelId": "confettiToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "viewport-stage-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "viewport-stage-v1",
+        "fit": "cover",
+        "align": "top"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 12000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 15000
+      },
+      "posterAssetId": "company-anniversary-confetti-poster-05b98b7b88a87a3c",
+      "posterDurationMs": 3000,
+      "variants": [
+        {
+          "when": {},
+          "animationAssetId": "company-anniversary-confetti-desktop-73a56ab7ba655cb5"
+        }
+      ]
+    }
+  ]
+}

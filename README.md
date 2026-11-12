@@ -25,6 +25,11 @@
   - [Customize Theme Colors](#customize-theme-colors)
   - [Colors for the Sign in Page (authColors)](#colors-for-the-sign-in-page-authcolors)
   - [Customizing Banner Images (banners)](#customizing-banner-images-banners)
+- [Celebration Packs](#celebration-packs)
+  - [Layout](#layout)
+  - [Publish a Pack Version](#publish-a-pack-version)
+  - [Caching](#caching)
+  - [Retention](#retention)
 
 ## Overview
 
@@ -234,3 +239,61 @@ the favicon; the supplied SVG is `static/launchpad-favicon.svg`.
   ]
 }
 ```
+
+## Celebration Packs
+
+> [!NOTE]
+> Celebration packs are versioned animations for the seasonal start-page celebrations of [AI DIAL Chat](https://github.com/epam/ai-dial-chat). A pack can replace a scene of an event Chat already compiles by its ID, add a new scene to that event's click pool (such as `new-year/bullfinch-couriers`) or describe a whole event Chat has no code for (such as `company-anniversary`). The Chat deployment allowlists every replaced or added scene. A new pack version reaches Chat without a Chat rebuild.
+
+Packs live under [static/celebrations](./static/celebrations) and never in `config.json`, so theme readers (Chat, Admin, Model Garden) are not affected. Only the DIAL Chat backend reads them, from `<THEMES_CONFIG_URL>/celebrations/`. It verifies every size, SHA-256 and media type before it serves a byte, and the Chat deployment decides whether a pack is used at all (`UI_EVENT_DELIVERY_MODE`, `UI_EVENT_EXTERNAL_SCENES`, `UI_EVENT_EXTERNAL_EVENTS`). The default stays the compiled scenes.
+
+### Layout
+
+```text
+static/celebrations/
+├── index.json                         # mutable: every published version and the default per event
+├── new-year-default/
+│   └── 1.0.0/                         # immutable once published
+│       ├── manifest.json              # scenes, timing, variants and the declared assets
+│       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
+│       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
+│       └── bullfinch-couriers.poster.<sha256 prefix>.svg
+└── company-anniversary/
+    └── 1.0.0/
+        ├── manifest.json
+        ├── confetti.desktop.<sha256 prefix>.json
+        ├── confetti.poster.<sha256 prefix>.svg
+        └── icon.<sha256 prefix>.svg
+```
+
+- `index.json` lists each published version with its manifest `path`, `bytes` and `sha256`, and `defaults` names the version each event uses.
+- A manifest declares every file of its version directory with `assetId`, `file`, `mediaType`, `bytes` and `sha256`. File names and asset IDs end with the first 16 hex characters of the file's SHA-256, so a changed file always gets a new name.
+- Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 300 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
+
+Run the check before every pull request; CI runs it too:
+
+```bash
+node scripts/check-celebration-packs.mjs
+```
+
+It recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits and the retention rule below.
+
+### Publish a Pack Version
+
+A published version is never edited. To change a pack, publish a new version:
+
+1. Add the resources and the `manifest.json` under `static/celebrations/<packId>/<new version>/`.
+2. Add the version to `index.json` `packs`, with the manifest's byte size and SHA-256.
+3. Point `defaults.<eventId>` at the new version and bump `revision`.
+4. Run `node scripts/check-celebration-packs.mjs`.
+
+Publish in this order: resources, then the manifest, then `index.json`. Chat only follows the index, so every file a new index names already exists when the index changes. To roll back, point `defaults` back at the previous version and bump `revision`. Deleting `index.json` returns every event to its compiled scenes within a minute and leaves themes untouched.
+
+### Caching
+
+`index.json` is served with `Cache-Control: public, max-age=60, must-revalidate`, and every other file under `/celebrations/` with `public, max-age=31536000, immutable`, so a CDN or proxy in front of this service never holds a stale index for long and never refetches a version. These locations do not change the caching of `config.json` and the images.
+
+### Retention
+
+Keep the version `defaults` names plus the previous one, so a rollback is one index change. The check fails when a pack directory holds more than three versions. Delete an older version, together with its `index.json` entry, in a separate change, and only once no `index.json` revision from the last 30 days names it.
+
