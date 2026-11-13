@@ -24,6 +24,23 @@ server {
         otel_trace_context propagate;
     }
 
+    # Celebration packs: only the mutable index revalidates every minute.
+    # DIAL Chat's BFF is the only reader, so no CORS header or listing is needed.
+    location = /celebrations/index.json {
+        add_header Cache-Control "public, max-age=60, must-revalidate";
+        add_header X-Content-Type-Options "nosniff";
+
+        otel_trace_context propagate;
+    }
+
+    # Pack versions and their hashed resources never change once published.
+    location /celebrations/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options "nosniff";
+
+        otel_trace_context propagate;
+    }
+
     location = /health {
         access_log off;
         otel_trace off;
