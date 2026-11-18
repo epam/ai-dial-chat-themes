@@ -265,11 +265,15 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   └── 1.0.0/                         # immutable once published
+│   ├── 1.0.0/                         # immutable once published; kept as the rollback target
+│   └── 1.1.0/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
-│       └── bullfinch-couriers.poster.<sha256 prefix>.svg
+│       ├── bullfinch-couriers.poster.<sha256 prefix>.svg
+│       ├── gift-wrapping.desktop.<sha256 prefix>.json
+│       ├── gift-wrapping.mobile.<sha256 prefix>.json   # variant with its own placement
+│       └── gift-wrapping.poster.<sha256 prefix>.svg
 └── company-anniversary/
     └── 1.0.0/
         ├── manifest.json
@@ -282,13 +286,40 @@ static/celebrations/
 - A manifest declares every file of its version directory with `assetId`, `file`, `mediaType`, `bytes` and `sha256`. File names and asset IDs end with the first 16 hex characters of the file's SHA-256, so a changed file always gets a new name.
 - Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 300 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
 
+### Composer-anchored scenes
+
+A scene can attach to the Chat composer instead of the viewport (`composer-anchor-v1`). It is authored around a reference composer, `anchorRect`, in its own stage coordinates. Chat measures the real composer once and scales the whole stage uniformly by `clamp(composerWidth / anchorRect.width, scale.min, scale.max)`, aligning the center and `edge` of `anchorRect` with it. A stage is never stretched, so one composition serves every composer width. With no usable composer, `fallback: "stage-anchor"` plays around a synthetic composer of `anchorRect × scale.min` in the lower half of the viewport, and `fallback: "poster"` shows the poster.
+
+```json
+"placement": {
+  "template": "composer-anchor-v1",
+  "anchor": "composer",
+  "anchorRect": { "x": 340, "y": 164, "width": 520, "height": 56 },
+  "edge": "top",
+  "scale": { "min": 0.6, "max": 1 },
+  "fallback": "stage-anchor"
+}
+```
+
+A variant may override `placement` with its own `anchorRect` and `scale`, keeping the template. The New Year `gift-wrapping` scene uses this: its mobile variant is a 720 × 240 stage authored around a 300 × 56 composer, so on a tablet the elves keep their phone size instead of growing with the wider composer. Each variant's `anchorRect` must lie inside its own composition.
+
+A scene that also requires `interaction-composer-outline-v1` (the New Year `gift-wrapping`) gives Chat two layers to fit, found by their layer name:
+
+- `composer-outline`: exactly one top-level shape layer with an identity transform and exactly one static path. Chat redraws the path around the measured composer, starting at the top center. Its stroke, trim paths and timing stay as authored.
+- `composer-parcel` (optional): at most one shape layer with an identity transform and one static rectangle. Chat removes it for a real composer and sizes it to the synthetic composer otherwise.
+
+Everything else in the composition is authored motion and plays as published. Keep the manifest's `requiredCapabilities` to capabilities every supported Chat release has (`lottie-light-svg-v1`, `viewport-stage-v1`, `static-poster-v1`), and list `composer-anchor-v1` and `interaction-composer-outline-v1` on the scene only. A Chat release without them then skips just that scene, keeps its compiled version and still plays the rest of the pack.
+
+### Check
+
 Run the check before every pull request; CI runs it too:
 
 ```bash
 node scripts/check-celebration-packs.mjs
+node --test scripts/check-celebration-packs.test.mjs
 ```
 
-It recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits and the retention rule below.
+The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second proves that the first one rejects each kind of broken composer-anchor placement and slot.
 
 ### Publish a Pack Version
 

@@ -29,3 +29,5 @@ jobs:
           node-version: 22
       - name: Check celebration packs
         run: node scripts/check-celebration-packs.mjs
+      - name: Test the celebration pack check
+        run: node --test scripts/check-celebration-packs.test.mjs

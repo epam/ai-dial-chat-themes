@@ -61,9 +61,19 @@ const CAPABILITIES = new Set([
   'lottie-light-svg-v1',
   'viewport-stage-v1',
   'composer-anchor-v1',
+  'interaction-composer-outline-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
+/* Bounds of a `composer-anchor-v1` placement (celebration-lottie-authoring-profile). */
+const ANCHOR_MIN_WIDTH = 120;
+const ANCHOR_MIN_HEIGHT = 24;
+const ANCHOR_MIN_SCALE = 0.25;
+const ANCHOR_MAX_SCALE = 4;
+const STAGE_MAX_SIZE = 4096;
+/* Layers the `interaction-composer-outline-v1` adapter fits in DIAL Chat. */
+const OUTLINE_SLOT = 'composer-outline';
+const PARCEL_SLOT = 'composer-parcel';
 const RENDERERS = new Set(['lottie-light-svg-v1']);
 const ALIGN = new Set([
   'center',
@@ -348,8 +358,116 @@ const checkPlacement = (placement, where, path) => {
     if (!['contain', 'cover'].includes(placement.fit))
       error(where, `${path}.fit must be contain or cover`);
     if (!ALIGN.has(placement.align)) error(where, `${path}.align is invalid`);
+  } else if (placement.template === 'composer-anchor-v1') {
+    checkComposerAnchor(placement, where, path);
   } else if (!CAPABILITIES.has(placement.template))
     error(where, `${path}.template ${placement.template} is unknown`);
+};
+
+const isFiniteNumber = (value) =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/* Mirrors the BFF's validation of the same fields. */
+const checkComposerAnchor = (placement, where, path) => {
+  const { anchor, anchorRect, edge, scale, fallback } = placement;
+  if (anchor !== 'composer') error(where, `${path}.anchor must be composer`);
+  const { x, y, width, height } = isRecord(anchorRect) ? anchorRect : {};
+  if (
+    ![x, y, width, height].every(isFiniteNumber) ||
+    width < ANCHOR_MIN_WIDTH ||
+    height < ANCHOR_MIN_HEIGHT ||
+    x < 0 ||
+    y < 0 ||
+    x + width > STAGE_MAX_SIZE ||
+    y + height > STAGE_MAX_SIZE
+  )
+    error(
+      where,
+      `${path}.anchorRect needs finite x, y and width >= ${ANCHOR_MIN_WIDTH}, height >= ${ANCHOR_MIN_HEIGHT} inside ${STAGE_MAX_SIZE}`,
+    );
+  if (!['top', 'bottom'].includes(edge))
+    error(where, `${path}.edge must be top or bottom`);
+  const { min, max } = isRecord(scale) ? scale : {};
+  if (
+    !isFiniteNumber(min) ||
+    !isFiniteNumber(max) ||
+    min < ANCHOR_MIN_SCALE ||
+    min > max ||
+    max > ANCHOR_MAX_SCALE
+  )
+    error(
+      where,
+      `${path}.scale needs ${ANCHOR_MIN_SCALE} <= min <= max <= ${ANCHOR_MAX_SCALE}`,
+    );
+  if (!['stage-anchor', 'poster'].includes(fallback))
+    error(where, `${path}.fallback must be stage-anchor or poster`);
+};
+
+/* The anchorRect must lie inside the composition it is authored in. */
+const checkAnchorInsideStage = (animation, placement, where) => {
+  const { x, y, width, height } = placement.anchorRect ?? {};
+  if (
+    [x, y, width, height].every(isFiniteNumber) &&
+    (x + width > animation.w || y + height > animation.h)
+  )
+    error(where, `anchorRect lies outside the ${animation.w} x ${animation.h} stage`);
+};
+
+/* ---------- interaction-composer-outline-v1 slots ---------- */
+const isStatic = (property) => property === undefined || property?.a === 0;
+const isStaticValue = (property, expected) => {
+  if (property === undefined) return true;
+  if (property?.a !== 0) return false;
+  const value = Array.isArray(property.k) ? property.k : [property.k];
+  return expected.every((number, index) => (value[index] ?? 0) === number);
+};
+/* Geometry comes from the slot's own shape: nothing above it may move, scale, rotate or skew it. */
+const isIdentity = (transform) =>
+  transform === undefined ||
+  (isStaticValue(transform.a, [0, 0]) &&
+    isStaticValue(transform.p, [0, 0]) &&
+    isStaticValue(transform.s, [100, 100]) &&
+    isStaticValue(transform.r, [0]) &&
+    isStaticValue(transform.sk, [0]));
+const collectShapes = (shapes, ty) => {
+  const found = [];
+  for (const shape of shapes ?? []) {
+    if (shape.ty === ty) found.push(shape);
+    if (shape.ty === 'tr' && !isIdentity(shape)) return undefined;
+    if (shape.ty === 'gr') {
+      const nested = collectShapes(shape.it, ty);
+      if (!nested) return undefined;
+      found.push(...nested);
+    }
+  }
+  return found;
+};
+const checkSlot = (layer, ty, isGeometryStatic, where) => {
+  if (layer.ty !== 4 || !isIdentity(layer.ks)) {
+    error(where, `${layer.nm} must be a shape layer with an identity transform`);
+    return;
+  }
+  const shapes = collectShapes(layer.shapes, ty);
+  if (!shapes || shapes.length !== 1) {
+    error(where, `${layer.nm} needs exactly one ${ty} under identity groups`);
+    return;
+  }
+  if (!isGeometryStatic(shapes[0]))
+    error(where, `${layer.nm} ${ty} must not be animated`);
+};
+
+/* The same rules DIAL Chat applies before playback; a broken slot there means a poster instead of the scene. */
+const checkComposerOutlineSlots = (animation, where) => {
+  const layers = animation.layers ?? [];
+  const outlines = layers.filter(({ nm }) => nm === OUTLINE_SLOT);
+  const parcels = layers.filter(({ nm }) => nm === PARCEL_SLOT);
+  if (outlines.length !== 1)
+    error(where, `needs exactly one top-level ${OUTLINE_SLOT} layer, found ${outlines.length}`);
+  else checkSlot(outlines[0], 'sh', (shape) => isStatic(shape.ks), where);
+  if (parcels.length > 1)
+    error(where, `has ${parcels.length} ${PARCEL_SLOT} layers; at most one is allowed`);
+  else if (parcels.length === 1)
+    checkSlot(parcels[0], 'rc', (shape) => isStatic(shape.p) && isStatic(shape.s), where);
 };
 
 const checkLabels = (labels, where) => {
@@ -504,6 +622,14 @@ const checkManifest = (entry, file) => {
     if (!RENDERERS.has(scene.renderer)) error(where, `${path}.renderer ${scene.renderer} is unknown`);
     checkCapabilities(scene.requiredCapabilities, where, `${path}.requiredCapabilities`);
     checkPlacement(scene.placement, where, `${path}.placement`);
+    const isAnchored = scene.placement?.template === 'composer-anchor-v1';
+    const needsOutline = (scene.requiredCapabilities ?? []).includes(
+      'interaction-composer-outline-v1',
+    );
+    if (isAnchored && !(scene.requiredCapabilities ?? []).includes('composer-anchor-v1'))
+      error(where, `${path} uses composer-anchor-v1 placement without requiring it`);
+    if (needsOutline && !isAnchored)
+      error(where, `${path} requires interaction-composer-outline-v1 without composer-anchor-v1 placement`);
     const hasTiming = checkTiming(scene, where, path);
     if (!['none', 'mirror', 'variant'].includes(scene.direction))
       error(where, `${path}.direction ${scene.direction} is invalid`);
@@ -522,6 +648,17 @@ const checkManifest = (entry, file) => {
           )
         )
           error(where, `${vpath}.when.${key} is not allowed`);
+      /* A variant may use its own frame, never another template. */
+      let placement = scene.placement;
+      if (variant.placement !== undefined) {
+        checkPlacement(variant.placement, where, `${vpath}.placement`);
+        if (variant.placement?.template !== scene.placement?.template)
+          error(where, `${vpath}.placement.template differs from the scene's`);
+        placement = variant.placement;
+      }
+      for (const key of Object.keys(variant))
+        if (!['when', 'animationAssetId', 'placement'].includes(key))
+          error(where, `${vpath}.${key} is not allowed`);
       const asset = reference(variant.animationAssetId, `${vpath}.animationAssetId`, 'animation');
       if (asset?.content && hasTiming) {
         let animation;
@@ -534,6 +671,10 @@ const checkManifest = (entry, file) => {
         if (depth(animation) > LOTTIE_MAX_DEPTH)
           error(rel(join(directory, asset.file)), `JSON depth exceeds ${LOTTIE_MAX_DEPTH}`);
         checkLottie(animation, scene.timing.playbackDurationMs, rel(join(directory, asset.file)));
+        if (isAnchored && placement?.template === 'composer-anchor-v1')
+          checkAnchorInsideStage(animation, placement, rel(join(directory, asset.file)));
+        if (needsOutline && isAnchored)
+          checkComposerOutlineSlots(animation, rel(join(directory, asset.file)));
       }
     }
     if (scene.direction === 'variant' && !variants.some(({ when }) => when?.direction === 'rtl'))

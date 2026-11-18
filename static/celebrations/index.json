@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2026-11-06.5",
+  "revision": "2026-11-18.1",
   "packs": [
     {
       "packId": "new-year-default",
@@ -10,6 +10,16 @@
         "path": "new-year-default/1.0.0/manifest.json",
         "bytes": 2436,
         "sha256": "7a9db5ecb2f75d7cdc975791d4948dfdb225c1ac35b8d1447c373d80bc7cf280"
+      }
+    },
+    {
+      "packId": "new-year-default",
+      "version": "1.1.0",
+      "eventId": "new-year",
+      "manifest": {
+        "path": "new-year-default/1.1.0/manifest.json",
+        "bytes": 5054,
+        "sha256": "aab4c679c9ec928d778f525a592fd8ea468ac5c0ac5b72fa71bb0ad97ebe68bb"
       }
     },
     {
@@ -26,7 +36,7 @@
   "defaults": {
     "new-year": {
       "packId": "new-year-default",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     "company-anniversary": {
       "packId": "company-anniversary",
