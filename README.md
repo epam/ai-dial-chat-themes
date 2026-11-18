@@ -265,8 +265,9 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   ├── 1.0.0/                         # immutable once published; kept as the rollback target
-│   └── 1.1.0/
+│   ├── 1.0.0/                         # immutable once published
+│   ├── 1.1.0/                         # previous version, kept for rollback
+│   └── 1.1.1/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
@@ -285,6 +286,15 @@ static/celebrations/
 - `index.json` lists each published version with its manifest `path`, `bytes` and `sha256`, and `defaults` names the version each event uses.
 - A manifest declares every file of its version directory with `assetId`, `file`, `mediaType`, `bytes` and `sha256`. File names and asset IDs end with the first 16 hex characters of the file's SHA-256, so a changed file always gets a new name.
 - Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 300 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
+
+New Year `1.1.1` refines the artwork and staging of both existing scenes. The
+bullfinches keep their complete silhouette while turning, and their larger,
+raised stage uses transparent headroom to bound enlargement on tablets and wide
+screens. The elves have softer face and coat shading, warmer outlines, wider
+spacing and a loose ribbon that hangs below the greeting during the handoff.
+Both static posters match the updated art. The stories, durations, composer
+contacts and required capabilities are unchanged. The JSON and SVG files are
+the authored source; publication does not generate them from Chat components.
 
 ### Composer-anchored scenes
 

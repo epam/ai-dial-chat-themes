@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2026-11-18.1",
+  "revision": "2026-11-18.2",
   "packs": [
     {
       "packId": "new-year-default",
@@ -23,6 +23,16 @@
       }
     },
     {
+      "packId": "new-year-default",
+      "version": "1.1.1",
+      "eventId": "new-year",
+      "manifest": {
+        "path": "new-year-default/1.1.1/manifest.json",
+        "bytes": 5054,
+        "sha256": "ad8081e81fcbdfc6c340588c23ca70c34fdbd12626116113a626bfe9c575b2e1"
+      }
+    },
+    {
       "packId": "company-anniversary",
       "version": "1.0.0",
       "eventId": "company-anniversary",
@@ -36,7 +46,7 @@
   "defaults": {
     "new-year": {
       "packId": "new-year-default",
-      "version": "1.1.0"
+      "version": "1.1.1"
     },
     "company-anniversary": {
       "packId": "company-anniversary",
