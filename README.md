@@ -275,6 +275,11 @@ static/celebrations/
 │       ├── gift-wrapping.desktop.<sha256 prefix>.json
 │       ├── gift-wrapping.mobile.<sha256 prefix>.json   # variant with its own placement
 │       └── gift-wrapping.poster.<sha256 prefix>.svg
+├── halloween-default/
+│   └── 1.0.0/
+│       ├── manifest.json
+│       ├── cat.<sha256 prefix>.json   # one composition for every layout and story
+│       └── cat.poster.<sha256 prefix>.svg
 └── company-anniversary/
     └── 1.0.0/
         ├── manifest.json
@@ -285,7 +290,7 @@ static/celebrations/
 
 - `index.json` lists each published version with its manifest `path`, `bytes` and `sha256`, and `defaults` names the version each event uses.
 - A manifest declares every file of its version directory with `assetId`, `file`, `mediaType`, `bytes` and `sha256`. File names and asset IDs end with the first 16 hex characters of the file's SHA-256, so a changed file always gets a new name.
-- Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 300 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
+- Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 4,000 keyframes, 8,000 vertices and 512 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
 
 New Year `1.1.1` refines the artwork and staging of both existing scenes. The
 bullfinches keep their complete silhouette while turning, and their larger,
@@ -320,6 +325,25 @@ A scene that also requires `interaction-composer-outline-v1` (the New Year `gift
 
 Everything else in the composition is authored motion and plays as published. Keep the manifest's `requiredCapabilities` to capabilities every supported Chat release has (`lottie-light-svg-v1`, `viewport-stage-v1`, `static-poster-v1`), and list `composer-anchor-v1` and `interaction-composer-outline-v1` on the scene only. A Chat release without them then skips just that scene, keeps its compiled version and still plays the rest of the pack.
 
+### Cat-borrow scenes
+
+A scene that requires `interaction-cat-borrow-v1` (the Halloween `cat`) borrows up to two composer or starter buttons through reversible copies: the cat perches on the composer, pushes each copy off, and the copies fall, land and fade back to the untouched originals. Chat picks one of three authored stories from what it measures — `two-prizes`, `one-prize` or `crossing` when no button is reachable — so one composition serves every layout, writing direction and button order. The scene needs `composer-anchor-v1` placement on the scene and every variant, `direction: "none"` (every side comes from physical geometry), and cannot also require `interaction-composer-outline-v1`. The Halloween pack plays the same file on both layouts and fixes the scale through `scale.min = scale.max` (1 on desktop, 0.8 on mobile).
+
+Chat reads these layers by name and changes nothing else:
+
+- `cat-rig`: exactly one unparented top-level precomposition holding the character, starting at frame 0 in a composition that starts at frame 0, with a static anchor and position, an unanimated 100 % scale and 0° rotation, and no time remap of its own. Chat writes its time remap to select the story and to stretch the reaction to the last borrowed button's fall onto the measured landing.
+- `cat-root` (inside `cat-rig`): exactly one unparented null whose position keyframes are the stations. Every keyframe has a numeric start value only and no spatial tangents, and lies inside a `cat:bind:<anchor>` range. Chat moves each keyframe by its authored offset from the `anchor:<anchor>` null to the measured anchor, mirrored when the measured side differs.
+- `cat-facing` (inside `cat-rig`, and it may hang below `cat-root`): exactly one null whose x-scale hold keyframes carry the facing. They are stations too: each has a numeric start value only and lies inside a `cat:bind:<anchor>` range, and Chat flips its sign with that anchor's measured side.
+- `anchor:<name>` (inside `cat-rig`): one unparented null per bound anchor — `entry-edge`, `perch`, `prize-0`, `prize-1`, `move` or `exit-edge` — whose position is static (`a: 0`) and numeric.
+- `prize-0`, `prize-1` (inside `cat-rig`): at most one layer each, the authored track of each borrowed copy. A prize with a `cat:release:<n>` needs a `cat:bind:prize-<n>` range with a `cat-root` keyframe inside it, and a keyframed position, since Chat reads the authored stand and push from them. Position, rotation and opacity share keyframe times and easing (compared as Chat does: missing or straight tangents are linear, curves at four decimals), scale is never animated, and the position has a keyframe at every release.
+- `cat-floor` (optional): at most one top-level group with one rectangle and one gradient fill, the glow under grounded copies.
+
+Composition markers starting with `cat:` time the stories: `cat:section:<story>` ranges, each at most once and never overlapping, `cat:branch:one-prize` on the frame of the two-prize story's `cat:release:0` where the one-prize tail leaves it, non-overlapping `cat:bind:<anchor>` ranges, and per prize `cat:entry:<n>`, up to four `cat:contact:<n>`, `cat:release:<n>`, `cat:landing:<n>` and `cat:restore`, in that order. A marker on a shared boundary belongs to the section it opens, and a marker without a duration may not sit on the last frame of the rig.
+
+Every story Chat can choose must carry the markers it reads for that story: `cat:entry:<n>` and `cat:release:<n>` for each borrowed button, the last one's `cat:landing:<n>`, and `cat:restore`. Each entry lies between 1% of the story and `cat:restore`, every `prize-<n>` keyframe up to the release plays in that story, and no story lasts longer than the composition's `op`. Only the last borrowed button's landing is elastic: its optional duration is the range that absorbs the measured fall, so that landing must come after its release, and the range must not cross the step from the two-prize story into the one-prize tail.
+
+Chat rejects the scene before playback — and plays the poster — when any of these rules fails; the check below applies all of them for every story. What depends on the measured page stays a runtime decision: a fall that the elastic range cannot absorb at 0.8–1.25 × speed drops that button from the story, and a page with no reachable button and no `crossing` story, or a copy still falling at `cat:restore`, shows the poster.
+
 ### Check
 
 Run the check before every pull request; CI runs it too:
@@ -329,7 +353,7 @@ node scripts/check-celebration-packs.mjs
 node --test scripts/check-celebration-packs.test.mjs
 ```
 
-The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second proves that the first one rejects each kind of broken composer-anchor placement and slot.
+The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, and one case for every cat-borrow rule above. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
 
 ### Publish a Pack Version
 
