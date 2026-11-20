@@ -37,7 +37,7 @@ const MANIFEST_MAX_BYTES = 64 * KIB;
 const MAX_DEPTH = 32;
 const LOTTIE_MAX_DEPTH = 64;
 const MEDIA = {
-  'application/json': { ext: 'json', maxBytes: 300 * KIB },
+  'application/json': { ext: 'json', maxBytes: 512 * KIB },
   'image/svg+xml': { ext: 'svg', maxBytes: 100 * KIB },
   'image/png': { ext: 'png', maxBytes: 100 * KIB },
   'image/webp': { ext: 'webp', maxBytes: 100 * KIB },
@@ -54,6 +54,8 @@ const MAX_LIFETIME_MS = 32_000;
 const MIN_POSTER_DURATION_MS = 1000;
 /* Keep the current and the previous version; a fourth means cleanup is overdue. */
 const MAX_VERSIONS_PER_PACK = 3;
+/* Lottie caps raised by DIAL Chat S4 (#9223): 512 KiB and 4,000 keyframes per variant. */
+const MAX_KEYFRAMES = 4000;
 /* The player DIAL Chat pins (`lottie-web` lottie_light). */
 const MAX_LOTTIE_VERSION = [5, 13, 0];
 
@@ -62,6 +64,7 @@ const CAPABILITIES = new Set([
   'viewport-stage-v1',
   'composer-anchor-v1',
   'interaction-composer-outline-v1',
+  'interaction-cat-borrow-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
@@ -161,8 +164,17 @@ const ABSOLUTE_URL =
 
 const errors = [];
 const warnings = [];
-const error = (where, message) => errors.push(`${where}: ${message}`);
-const warn = (where, message) => warnings.push(`${where}: ${message}`);
+/* Each message is kept once and nothing is returned, so a caller cannot use the result as a value. */
+const report = (list, where, message) => {
+  const entry = `${where}: ${message}`;
+  if (!list.includes(entry)) list.push(entry);
+};
+const error = (where, message) => {
+  report(errors, where, message);
+};
+const warn = (where, message) => {
+  report(warnings, where, message);
+};
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const isInt = (value) => Number.isInteger(value);
@@ -293,7 +305,7 @@ const checkLottie = (animation, playbackDurationMs, where) => {
     }
   });
   if (layers > 30) error(where, `${layers} layers exceed 30`);
-  if (keyframes > 2000) error(where, `${keyframes} keyframes exceed 2000`);
+  if (keyframes > MAX_KEYFRAMES) error(where, `${keyframes} keyframes exceed ${MAX_KEYFRAMES}`);
   if (vertices > 8000) error(where, `${vertices} vertices exceed 8000`);
   if (Number.isFinite(fr) && fr > 0 && Number.isFinite(op - ip)) {
     const authoredMs = ((op - ip) / fr) * 1000;
@@ -470,6 +482,377 @@ const checkComposerOutlineSlots = (animation, where) => {
     checkSlot(parcels[0], 'rc', (shape) => isStatic(shape.p) && isStatic(shape.s), where);
 };
 
+/* ---------- interaction-cat-borrow-v1 slots and markers ---------- */
+/* The same rules DIAL Chat's adapter applies before playback (libs/celebrations
+   cat-borrow-adapter, lottie-markers, lottie-anchor-binding, lottie-track-keyframes,
+   lottie-time-remap). Any of them failing there means the poster instead of the
+   scene, so each one is an error here. */
+const CAT_BORROW = 'interaction-cat-borrow-v1';
+const CAT_ANCHORS = ['entry-edge', 'perch', 'prize-0', 'prize-1', 'move', 'exit-edge'];
+const CAT_SECTIONS = ['two-prizes', 'one-prize', 'crossing'];
+const CAT_PRIZES = ['0', '1'];
+const CAT_KINDS = {
+  section: { args: CAT_SECTIONS, duration: true },
+  branch: { args: ['one-prize'], duration: false },
+  bind: { args: CAT_ANCHORS, duration: true, exclusive: true },
+  entry: { args: CAT_PRIZES, duration: false },
+  contact: { args: CAT_PRIZES, duration: false, max: 4 },
+  release: { args: CAT_PRIZES, duration: false },
+  landing: { args: CAT_PRIZES },
+  restore: { duration: false },
+};
+const CAT_ORDER = ['entry', 'contact', 'release', 'landing', 'restore'];
+/* The story Chat plays for 0, 1 and 2 reachable buttons. */
+const CAT_STORIES = ['crossing', 'one-prize', 'two-prizes'];
+/* The copy may hide its original no earlier than this share of the story. */
+const CAT_MIN_HIDE_SHARE = 0.01;
+
+const isZeroTangent = (value) => value === undefined || (Array.isArray(value) && value.every((n) => n === 0));
+/* A point Chat reads as static: present, not animated (`a === 0` when `requireZero`) and numeric. */
+const isStaticPoint = (property, requireZero = false) =>
+  isRecord(property) &&
+  (requireZero ? property.a === 0 : property.a !== 1) &&
+  Array.isArray(property.k) &&
+  property.k.length >= 2 &&
+  property.k.every(isFiniteNumber);
+/* DIAL Chat's `easingOf` (lottie-track-keyframes): holds step, missing or straight tangents are
+   linear, and the curve compares at four decimals. `undefined` for a tangent that is not numeric. */
+const easingOf = (keyframe) => {
+  if (keyframe.h === 1) return 'steps(1, end)';
+  if (!keyframe.o || !keyframe.i) return 'linear';
+  const curve = [keyframe.o.x, keyframe.o.y, keyframe.i.x, keyframe.i.y].map((value) =>
+    Array.isArray(value) ? value[0] : value,
+  );
+  if (!curve.every(isFiniteNumber)) return undefined;
+  const [ox, oy, ix, iy] = curve.map((value) => Number(value.toFixed(4)));
+  return ox === oy && ix === iy ? 'linear' : `cubic-bezier(${[ox, oy, ix, iy].join(', ')})`;
+};
+const findCatMarker = (markers, kind, arg) =>
+  markers.find((marker) => marker.kind === kind && marker.arg === arg);
+
+/* Returns the valid `cat:` markers grouped by section, as DIAL Chat's `readNamespacedMarkers` does. */
+const readCatMarkers = (animation, rigEnd, where) => {
+  const raw = animation.markers;
+  if (raw !== undefined && !Array.isArray(raw)) {
+    error(where, 'markers is not a list');
+    return [];
+  }
+  const list = [];
+  for (const marker of raw ?? []) {
+    if (!isRecord(marker) || typeof marker.cm !== 'string' || !marker.cm.startsWith('cat:')) continue;
+    const label = marker.cm;
+    const [, kind, arg, ...rest] = label.split(':');
+    const rule = Object.hasOwn(CAT_KINDS, kind) ? CAT_KINDS[kind] : undefined;
+    if (!rule || rest.length) {
+      error(where, `marker ${label} is unknown`);
+      continue;
+    }
+    if (rule.args ? !rule.args.includes(arg) : arg !== undefined) {
+      error(where, `marker ${label} has an unknown argument`);
+      continue;
+    }
+    const { tm } = marker;
+    const dr = marker.dr ?? 0;
+    if (
+      !isFiniteNumber(tm) ||
+      !isFiniteNumber(dr) ||
+      dr < 0 ||
+      tm < 0 ||
+      tm + dr > rigEnd ||
+      (dr === 0 && tm >= rigEnd)
+    ) {
+      error(where, `marker ${label} lies outside the rig timeline 0..${rigEnd}`);
+      continue;
+    }
+    if (rule.duration === true && !(dr > 0)) {
+      error(where, `marker ${label} needs a duration`);
+      continue;
+    }
+    if (rule.duration === false && dr > 0) {
+      error(where, `marker ${label} must not have a duration`);
+      continue;
+    }
+    list.push({ kind, arg, tm, dr, label });
+  }
+  list.sort((a, b) => a.tm - b.tm);
+
+  const sections = list.filter(({ kind }) => kind === 'section');
+  if (!sections.length) error(where, 'has no cat:section marker');
+  const sectionLabels = new Set();
+  sections.forEach((section, index) => {
+    if (sectionLabels.has(section.label)) error(where, `${section.label} repeats in the timeline`);
+    sectionLabels.add(section.label);
+    const next = sections[index + 1];
+    if (next && next.tm < section.tm + section.dr) error(where, `${section.label} overlaps ${next.label}`);
+  });
+  const scopes = sections.map((section) => ({ section, markers: [] }));
+  for (const marker of list) {
+    if (marker.kind === 'section') continue;
+    const fits = ({ section }) => marker.tm >= section.tm && marker.tm + marker.dr <= section.tm + section.dr;
+    /* Sections are half-open: a marker on a shared boundary belongs to the section it opens. */
+    const scope = scopes.find((s) => fits(s) && marker.tm < s.section.tm + s.section.dr) ?? scopes.find(fits);
+    if (!scope) error(where, `marker ${marker.label} lies outside every section`);
+    else scope.markers.push(marker);
+  }
+  for (const { section, markers } of scopes) {
+    const counts = new Map();
+    for (const marker of markers) {
+      const key = `${marker.kind}:${marker.arg ?? ''}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+      if (counts.get(key) > (CAT_KINDS[marker.kind].max ?? 1))
+        error(where, `marker ${marker.label} repeats in ${section.label}`);
+    }
+    const binds = markers.filter(({ kind }) => kind === 'bind');
+    binds.forEach((first, i) => {
+      for (const second of binds.slice(i + 1))
+        if (first.tm < second.tm + second.dr && second.tm < first.tm + first.dr)
+          error(where, `${first.label} overlaps ${second.label} in ${section.label}`);
+    });
+    CAT_ORDER.forEach((earlier, i) => {
+      for (const later of CAT_ORDER.slice(i + 1))
+        for (const a of markers.filter(({ kind }) => kind === earlier))
+          for (const b of markers.filter(({ kind }) => kind === later))
+            if ((a.arg === b.arg || a.arg === undefined || b.arg === undefined) && b.tm < a.tm)
+              error(where, `${b.label} comes before ${a.label} in ${section.label}`);
+    });
+    for (const branch of markers.filter(({ kind }) => kind === 'branch')) {
+      const release = findCatMarker(markers, 'release', '0');
+      if (!release || release.tm !== branch.tm)
+        error(where, `${branch.label} must share its frame with cat:release:0 in ${section.label}`);
+    }
+  }
+  return scopes;
+};
+
+/* The ranges and markers DIAL Chat's `pathFor` plays for `count` borrowed buttons, or `undefined`. */
+const catPath = (scopes, count) => {
+  const scope = (name) => scopes.find(({ section }) => section.arg === name);
+  const whole = ({ section, markers }) => ({
+    ranges: [{ from: section.tm, to: section.tm + section.dr }],
+    markers,
+  });
+  const two = scope('two-prizes');
+  const one = scope('one-prize');
+  if (count >= 2 && two) return whole(two);
+  if (count === 1 && one) {
+    const branch = two && findCatMarker(two.markers, 'branch', 'one-prize');
+    if (!branch) return whole(one);
+    return {
+      ranges: [{ from: two.section.tm, to: branch.tm }, ...whole(one).ranges],
+      markers: [...two.markers.filter(({ tm }) => tm < branch.tm), ...one.markers],
+    };
+  }
+  const crossing = scope('crossing');
+  return count === 0 && crossing ? whole(crossing) : undefined;
+};
+
+/* The story frame at which rig frame `local` shows, or `undefined` when the story skips it. */
+const toStoryFrame = (ranges, local) => {
+  let start = 0;
+  for (const { from, to } of ranges) {
+    if (local >= from && local <= to) return start + local - from;
+    start += to - from;
+  }
+  return undefined;
+};
+
+/* Every story Chat may choose must carry the markers it reads for that story. */
+const checkCatStories = (scopes, slotCount, tracks, compositionOp, where) => {
+  for (let count = 0; count <= Math.min(2, slotCount); count++) {
+    const path = catPath(scopes, count);
+    if (!path) continue;
+    const story = `the ${CAT_STORIES[count]} story`;
+    if (path.ranges.some(({ from, to }) => !(to > from))) {
+      error(where, `${story} has a range without length`);
+      continue;
+    }
+    const end = path.ranges.reduce((sum, { from, to }) => sum + to - from, 0);
+    if (Number.isFinite(compositionOp) && end > compositionOp)
+      error(where, `${story} lasts ${end} frames, beyond the composition's op ${compositionOp}`);
+    if (count === 0) continue;
+    const need = (kind, arg) => {
+      const marker = findCatMarker(path.markers, kind, arg);
+      if (!marker) error(where, `${story} has no cat:${kind}${arg === undefined ? '' : `:${arg}`}`);
+      return marker;
+    };
+    const restore = need('restore');
+    for (let index = 0; index < count; index++) {
+      const prize = String(index);
+      const entry = need('entry', prize);
+      const release = need('release', prize);
+      if (entry && restore) {
+        const hide = toStoryFrame(path.ranges, entry.tm);
+        if (!(hide >= end * CAT_MIN_HIDE_SHARE && hide <= toStoryFrame(path.ranges, restore.tm)))
+          error(where, `${story}: ${entry.label} must lie between 1% of the story and cat:restore`);
+      }
+      if (release)
+        for (const { t } of tracks[prize] ?? [])
+          if (t <= release.tm && toStoryFrame(path.ranges, t) === undefined)
+            error(where, `${story}: prize-${prize} keyframe at frame ${t} never plays`);
+    }
+    const last = String(count - 1);
+    const landing = need('landing', last);
+    const release = findCatMarker(path.markers, 'release', last);
+    if (landing?.dr > 0 && release) {
+      if (!(landing.tm > release.tm))
+        error(where, `${story}: ${landing.label} has an elastic range but does not come after ${release.label}`);
+      else if (!path.ranges.some(({ from, to }) => release.tm >= from && landing.tm + landing.dr <= to))
+        error(where, `${story}: the elastic range of ${landing.label} crosses a story step`);
+    }
+  }
+};
+
+/* Keyframes Chat retargets: a numeric start value and no end value each; returns those with a time. */
+const stationKeyframes = (layer, key, where) => {
+  const property = layer.ks?.[key];
+  if (property?.a !== 1 || !Array.isArray(property.k) || !property.k.length) {
+    error(where, `${layer.nm} ${key === 'p' ? 'position' : 'scale'} must be keyframed`);
+    return [];
+  }
+  const keyframes = property.k;
+  if (
+    keyframes.some(
+      (k) =>
+        !isRecord(k) ||
+        !isFiniteNumber(k.t) ||
+        !Array.isArray(k.s) ||
+        k.s.length < 2 ||
+        !k.s.every(isFiniteNumber) ||
+        'e' in k,
+    )
+  )
+    error(where, `${layer.nm} keyframes need a numeric start value and no end value`);
+  return keyframes.filter((k) => isRecord(k) && isFiniteNumber(k.t) && Array.isArray(k.s));
+};
+
+const checkCatBorrow = (animation, where) => {
+  if ((animation.ip ?? 0) !== 0) error(where, 'the composition must start at frame 0');
+  const rigs = (animation.layers ?? []).filter(({ nm }) => nm === 'cat-rig');
+  if (rigs.length !== 1 || rigs[0].ty !== 0) {
+    error(where, `needs exactly one top-level cat-rig precomposition, found ${rigs.length}`);
+    return;
+  }
+  const [rig] = rigs;
+  if (rig.tm !== undefined) error(where, 'cat-rig has its own time remap; the adapter writes it');
+  if ((rig.st ?? 0) !== 0) error(where, 'cat-rig must start at frame 0');
+  if (rig.parent !== undefined) error(where, 'cat-rig must not have a parent');
+  if (!isStaticPoint(rig.ks?.a) || !isStaticPoint(rig.ks?.p))
+    error(where, 'cat-rig anchor and position must be static points');
+  /* Stage-to-rig is a pure shift only for an unscaled, unrotated rig, as the runtime requires. */
+  const isIdentity = (property, identity) =>
+    property === undefined ||
+    (property.a !== 1 && [property.k].flat().slice(0, 2).every((value) => value === identity));
+  if (!isIdentity(rig.ks?.s, 100) || !isIdentity(rig.ks?.r, 0))
+    error(where, 'cat-rig scale must be 100 % and rotation 0°, unanimated');
+  const layers = (animation.assets ?? []).find(({ id }) => id === rig.refId)?.layers;
+  if (!Array.isArray(layers) || !layers.length) {
+    error(where, 'cat-rig has no layers');
+    return;
+  }
+  const rigEnd = Math.max(0, ...layers.map(({ op }) => op ?? 0));
+  const one = (name) => {
+    const found = layers.filter(({ nm }) => nm === name);
+    if (found.length !== 1) error(where, `needs exactly one ${name} layer in cat-rig, found ${found.length}`);
+    return found.length === 1 ? found[0] : undefined;
+  };
+  const root = one('cat-root');
+  const facing = one('cat-facing');
+  if (root && (root.ty !== 3 || root.parent !== undefined)) error(where, 'cat-root must be an unparented null');
+  if (facing && facing.ty !== 3) error(where, 'cat-facing must be a null');
+  const positions = root ? stationKeyframes(root, 'p', where) : [];
+  if (positions.some((k) => !isZeroTangent(k.to) || !isZeroTangent(k.ti)))
+    error(where, 'cat-root keyframes must have no spatial tangents');
+  const facingKeys = facing ? stationKeyframes(facing, 's', where) : [];
+  if (facingKeys.slice(0, -1).some(({ h }) => h !== 1)) error(where, 'cat-facing scale must be hold keyframes');
+
+  const scopes = readCatMarkers(animation, rigEnd, where);
+  const markers = scopes.flatMap((scope) => scope.markers);
+  const binds = markers.filter(({ kind }) => kind === 'bind');
+  /* A keyframe on a shared boundary belongs to the later range, the last one to its end. */
+  const isBound = (t) =>
+    binds.some(({ tm, dr }) => tm <= t && t < tm + dr) || binds.some(({ tm, dr }) => t === tm + dr);
+  for (const [name, keyframes] of [
+    ['cat-root', positions],
+    ['cat-facing', facingKeys],
+  ])
+    for (const { t } of keyframes)
+      if (!isBound(t)) error(where, `${name} keyframe at frame ${t} lies outside every cat:bind range`);
+  for (const name of new Set(binds.map(({ arg }) => arg))) {
+    const reference = layers.filter(({ nm }) => nm === `anchor:${name}`);
+    if (
+      reference.length !== 1 ||
+      reference[0].ty !== 3 ||
+      reference[0].parent !== undefined ||
+      !isStaticPoint(reference[0].ks?.p, true)
+    )
+      error(where, `anchor:${name} must be one unparented null with a static position`);
+  }
+
+  const tracks = {};
+  const slots = [];
+  for (const prize of CAT_PRIZES) {
+    const name = `prize-${prize}`;
+    const found = layers.filter(({ nm }) => nm === name);
+    if (found.length > 1) error(where, `has ${found.length} ${name} layers in cat-rig; at most one is allowed`);
+    const releases = markers.filter(({ kind, arg }) => kind === 'release' && arg === prize);
+    if (!releases.length) continue;
+    slots.push(prize);
+    const bind = findCatMarker(markers, 'bind', name);
+    if (!bind) error(where, `cat:release:${prize} needs a cat:bind:${name} range`);
+    else if (!positions.some(({ t }) => t >= bind.tm && t < bind.tm + bind.dr))
+      error(where, `cat:bind:${name} has no cat-root keyframe inside its range at frame ${bind.tm}`);
+    const [track] = found;
+    if (!track) {
+      error(where, `cat:release:${prize} has no ${name} layer`);
+      continue;
+    }
+    if (track.ks?.s?.a === 1) error(where, `${name} must not animate its scale`);
+    const position = track.ks?.p;
+    if (position?.a !== 1 || !Array.isArray(position.k) || !position.k.length) {
+      error(where, `${name} position must be keyframed`);
+      continue;
+    }
+    const animated = ['p', 'r', 'o'].map((key) => track.ks?.[key]).filter((property) => property?.a === 1);
+    if (
+      animated.some(
+        ({ k }) =>
+          !Array.isArray(k) ||
+          k.some((keyframe) => !isRecord(keyframe) || !isFiniteNumber(keyframe.t) || !isFiniteNumber(keyframe.s?.[0])),
+      )
+    ) {
+      error(where, `${name} has a keyframe without a numeric time and start value`);
+      continue;
+    }
+    const [reference] = animated.map(({ k }) => k);
+    if (animated.some(({ k }) => k.some((keyframe) => easingOf(keyframe) === undefined)))
+      error(where, `${name} has a keyframe with non-numeric easing`);
+    else if (
+      animated.some(
+        ({ k }) =>
+          k.length !== reference.length ||
+          k.some((keyframe, i) => keyframe.t !== reference[i].t || easingOf(keyframe) !== easingOf(reference[i])),
+      )
+    )
+      error(where, `${name} tracks must share keyframe times and easing`);
+    for (const { tm } of releases)
+      if (!reference.some(({ t }) => t === tm)) error(where, `${name} has no keyframe at its release frame ${tm}`);
+    tracks[prize] = reference;
+  }
+  checkCatStories(scopes, slots.length, tracks, animation.op, where);
+
+  const floors = (animation.layers ?? []).filter(({ nm }) => nm === 'cat-floor');
+  if (floors.length > 1) error(where, `has ${floors.length} cat-floor layers; at most one is allowed`);
+  else if (floors.length === 1) {
+    const items = floors[0].shapes?.[0]?.it ?? [];
+    if (
+      floors[0].shapes?.length !== 1 ||
+      items.filter(({ ty }) => ty === 'rc').length !== 1 ||
+      items.filter(({ ty }) => ty === 'gf').length !== 1
+    )
+      error(where, 'cat-floor must be one group with one rectangle and one gradient fill');
+  }
+};
+
 const checkLabels = (labels, where) => {
   const ids = new Set();
   if (labels === undefined) return ids;
@@ -630,6 +1013,13 @@ const checkManifest = (entry, file) => {
       error(where, `${path} uses composer-anchor-v1 placement without requiring it`);
     if (needsOutline && !isAnchored)
       error(where, `${path} requires interaction-composer-outline-v1 without composer-anchor-v1 placement`);
+    const needsCatBorrow = (scene.requiredCapabilities ?? []).includes(CAT_BORROW);
+    if (needsCatBorrow && !isAnchored)
+      error(where, `${path} requires ${CAT_BORROW} without composer-anchor-v1 placement`);
+    if (needsCatBorrow && scene.direction !== 'none')
+      error(where, `${path} requires ${CAT_BORROW} with direction ${scene.direction}; it needs none`);
+    if (needsCatBorrow && needsOutline)
+      error(where, `${path} requires both interaction adapters`);
     const hasTiming = checkTiming(scene, where, path);
     if (!['none', 'mirror', 'variant'].includes(scene.direction))
       error(where, `${path}.direction ${scene.direction} is invalid`);
@@ -637,6 +1027,7 @@ const checkManifest = (entry, file) => {
     const variants = scene.variants ?? [];
     if (!Array.isArray(variants) || variants.length < 1 || variants.length > MAX_VARIANTS)
       error(where, `${path}.variants must list 1..${MAX_VARIANTS} variants`);
+    const checkedAssets = new Set();
     for (const [i, variant] of variants.entries()) {
       const vpath = `${path}.variants[${i}]`;
       for (const [key, value] of Object.entries(variant.when ?? {}))
@@ -661,20 +1052,27 @@ const checkManifest = (entry, file) => {
           error(where, `${vpath}.${key} is not allowed`);
       const asset = reference(variant.animationAssetId, `${vpath}.animationAssetId`, 'animation');
       if (asset?.content && hasTiming) {
-        let animation;
-        try {
-          animation = JSON.parse(asset.content.toString('utf8'));
-        } catch {
-          error(rel(join(directory, asset.file)), 'is not valid JSON');
-          continue;
+        const file = rel(join(directory, asset.file));
+        if (asset.animation === undefined) {
+          try {
+            asset.animation = JSON.parse(asset.content.toString('utf8'));
+          } catch {
+            asset.animation = null;
+            error(file, 'is not valid JSON');
+          }
         }
-        if (depth(animation) > LOTTIE_MAX_DEPTH)
-          error(rel(join(directory, asset.file)), `JSON depth exceeds ${LOTTIE_MAX_DEPTH}`);
-        checkLottie(animation, scene.timing.playbackDurationMs, rel(join(directory, asset.file)));
+        const { animation } = asset;
+        if (!animation) continue;
+        /* Variants may share one file: its own rules run once per scene, its frame per variant. */
+        if (!checkedAssets.has(asset.assetId)) {
+          checkedAssets.add(asset.assetId);
+          if (depth(animation) > LOTTIE_MAX_DEPTH) error(file, `JSON depth exceeds ${LOTTIE_MAX_DEPTH}`);
+          checkLottie(animation, scene.timing.playbackDurationMs, file);
+          if (needsOutline && isAnchored) checkComposerOutlineSlots(animation, file);
+          if (needsCatBorrow && isAnchored) checkCatBorrow(animation, file);
+        }
         if (isAnchored && placement?.template === 'composer-anchor-v1')
-          checkAnchorInsideStage(animation, placement, rel(join(directory, asset.file)));
-        if (needsOutline && isAnchored)
-          checkComposerOutlineSlots(animation, rel(join(directory, asset.file)));
+          checkAnchorInsideStage(animation, placement, file);
       }
     }
     if (scene.direction === 'variant' && !variants.some(({ when }) => when?.direction === 'rtl'))

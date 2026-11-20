@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2026-11-18.2",
+  "revision": "2026-11-20.1",
   "packs": [
     {
       "packId": "new-year-default",
@@ -33,6 +33,16 @@
       }
     },
     {
+      "packId": "halloween-default",
+      "version": "1.0.0",
+      "eventId": "halloween",
+      "manifest": {
+        "path": "halloween-default/1.0.0/manifest.json",
+        "bytes": 2424,
+        "sha256": "1bf8d37db2623b24586652ffd781a3692686fa7080a66600fa263525fd17e00a"
+      }
+    },
+    {
       "packId": "company-anniversary",
       "version": "1.0.0",
       "eventId": "company-anniversary",
@@ -47,6 +57,10 @@
     "new-year": {
       "packId": "new-year-default",
       "version": "1.1.1"
+    },
+    "halloween": {
+      "packId": "halloween-default",
+      "version": "1.0.0"
     },
     "company-anniversary": {
       "packId": "company-anniversary",
