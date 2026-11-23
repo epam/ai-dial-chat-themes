@@ -267,8 +267,7 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   ├── 1.0.0/                         # immutable once published
-│   ├── 1.1.0/                         # previous version, kept for rollback
+│   ├── 1.1.0/                         # immutable previous version, kept for rollback
 │   └── 1.1.1/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
