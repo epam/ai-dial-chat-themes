@@ -1,8 +1,9 @@
 /*
  * Proves that check-celebration-packs.mjs rejects broken composer-anchor
- * placements, composer-outline slots and cat-borrow slots and markers. Each case
- * copies static/celebrations into a temporary directory, breaks one thing in
- * new-year-default@1.1.0 or halloween-default@1.0.0,
+ * placements, composer-outline slots, cat-borrow slots and markers, and
+ * copy-track slots, markers, references and poses. Each case copies
+ * static/celebrations into a temporary directory, breaks one thing in
+ * new-year-default@1.1.0 or @1.2.0 or halloween-default@1.0.0,
  * re-hashes what it changed and expects the checker to fail with a message.
  *
  * Usage: node --test scripts/check-celebration-packs.test.mjs
@@ -26,6 +27,7 @@ const SCRIPTS = dirname(fileURLToPath(import.meta.url));
 const SOURCE = join(SCRIPTS, '../static/celebrations');
 const PACK = 'new-year-default/1.1.0';
 const CAT_PACK = 'halloween-default/1.0.0';
+const SNOWMAN_PACK = 'new-year-default/1.2.0';
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const directories = [];
 
@@ -116,6 +118,25 @@ const catMarker = (animation, cm) => animation.markers.find((marker) => marker.c
 
 /* The keyframes of one property of a borrowed button's authored track. */
 const prizeTrack = (layers, prize, key) => layers.find(({ nm }) => nm === `prize-${prize}`).ks[key].k;
+
+const snowmanScene = (manifest) => manifest.scenes.find(({ id }) => id === 'snowman-delivery');
+
+/* Edits the desktop SnowmanDelivery animation; `actor` is the ct-actor precomposition's layer list. */
+const editSnowman = (edit) => (root, manifest) =>
+  replaceAnimation(
+    root,
+    manifest,
+    snowmanScene(manifest).variants.find(({ when }) => when.layout === 'desktop').animationAssetId,
+    (animation) => {
+      const actor = animation.layers.find(({ nm }) => nm === 'ct-actor');
+      const { layers } = animation.assets.find(({ id }) => id === actor.refId);
+      edit(animation, layers);
+    },
+    SNOWMAN_PACK,
+  );
+
+const ctMarker = (animation, cm) => animation.markers.find((marker) => marker.cm === cm);
+const rootKeys = (layers) => layers.find(({ nm }) => nm === 'ct-track:root').ks.p.k;
 
 after(() => directories.forEach((root) => rmSync(root, { recursive: true, force: true })));
 
@@ -301,7 +322,7 @@ describe('check-celebration-packs', () => {
       (_root, manifest) => {
         catScene(manifest).requiredCapabilities.push('interaction-composer-outline-v1');
       },
-      /requires both interaction adapters/,
+      /requires more than one interaction adapter/,
     ],
   ])
     it(`rejects a cat scene with ${name}`, () => {
@@ -737,5 +758,341 @@ describe('check-celebration-packs', () => {
       const { status, output } = check(editCat(edit), CAT_PACK);
       assert.equal(status, 1);
       assert.match(output, message);
+    });
+
+  for (const [name, edit, message] of [
+    [
+      'direction mirror',
+      (_root, manifest) => {
+        snowmanScene(manifest).direction = 'mirror';
+      },
+      /interaction-copy-track-v1 with direction mirror; it needs none/,
+    ],
+    [
+      'a viewport-stage placement',
+      (_root, manifest) => {
+        const scene = snowmanScene(manifest);
+        scene.placement = { template: 'viewport-stage-v1', fit: 'contain', align: 'bottom' };
+        scene.requiredCapabilities = scene.requiredCapabilities.filter((id) => id !== 'composer-anchor-v1');
+        for (const variant of scene.variants) delete variant.placement;
+      },
+      /interaction-copy-track-v1 without composer-anchor-v1 placement/,
+    ],
+    [
+      'the cat adapter as well',
+      (_root, manifest) => {
+        snowmanScene(manifest).requiredCapabilities.push('interaction-cat-borrow-v1');
+      },
+      /requires more than one interaction adapter/,
+    ],
+  ])
+    it(`rejects a SnowmanDelivery scene with ${name}`, () => {
+      const { status, output } = check(edit, SNOWMAN_PACK);
+      assert.equal(status, 1);
+      assert.match(output, message);
+    });
+
+  for (const [name, edit, message] of [
+    [
+      'no ct-travel',
+      (animation) => {
+        animation.layers = animation.layers.filter(({ nm }) => nm !== 'ct-travel');
+      },
+      /needs exactly one top-level ct-travel null, found 0/,
+    ],
+    [
+      'an unknown ct: marker',
+      (animation) => {
+        animation.markers.push({ cm: 'ct:jump', tm: 10, dr: 0 });
+      },
+      /unknown copy-track marker "ct:jump"/,
+    ],
+    [
+      'a fill shorter than its cut',
+      (animation) => {
+        ctMarker(animation, 'ct:fill:rim-card').dr -= 1;
+      },
+      /a "rim-card" fill does not last as long as its cut/,
+    ],
+    [
+      'no ct:entry while a section copies',
+      (animation) => {
+        animation.markers = animation.markers.filter(({ cm }) => cm !== 'ct:entry');
+      },
+      /a section copies but ct:entry or ct:restore is missing/,
+    ],
+    [
+      'a missing minimum-span reference',
+      (animation) => {
+        animation.layers = animation.layers.filter(({ nm }) => nm !== 'anchor:far@min');
+      },
+      /needs exactly one anchor:far@min layer, found 0/,
+    ],
+    [
+      'an override for an undeclared section',
+      (animation) => {
+        const layer = animation.layers.find(({ nm }) => nm === 'anchor:far#rim,platform');
+        layer.nm = 'anchor:far#rim,sky';
+      },
+      /names no declared section "sky"/,
+    ],
+    [
+      'an override of a fixed anchor',
+      (animation) => {
+        const layer = animation.layers.find(({ nm }) => nm === 'anchor:far#rim,platform');
+        layer.nm = 'anchor:stance#rim';
+      },
+      /"anchor:stance#rim" overrides no reference/,
+    ],
+    [
+      'a track keyframe outside every range',
+      (animation) => {
+        animation.markers = animation.markers.filter(({ cm, tm }) => !(cm === 'ct:bind:entry-edge' && tm === 0));
+      },
+      /ct-track:root keyframe at frame 0 lies outside every ct:bind and ct:stretch range/,
+    ],
+    [
+      'a pose jump at a splice edge',
+      (animation, layers) => {
+        const fill = ctMarker(animation, 'ct:fill:rim-card');
+        const key = rootKeys(layers).find(({ t }) => Math.abs(t - fill.tm) < 1e-6);
+        key.s = [key.s[0] + 10, ...key.s.slice(1)];
+      },
+      /ct-track:root does not match its pose at the "rim-card" splice edge/,
+    ],
+    [
+      'a cycle that does not close',
+      (animation, layers) => {
+        const cycle = ctMarker(animation, 'ct:cycle:0');
+        const key = rootKeys(layers).find(({ t }) => Math.abs(t - (cycle.tm + cycle.dr)) < 1e-6);
+        key.s = [key.s[0] + 10, ...key.s.slice(1)];
+      },
+      /ct-track:root does not close cycle 0/,
+    ],
+    [
+      'a keyframe with neither a hold nor an easing',
+      (_animation, layers) => {
+        const key = rootKeys(layers)[1];
+        delete key.o;
+        delete key.i;
+        delete key.h;
+      },
+      /has a keyframe at frame [\d.]+ with neither a hold nor an easing/,
+    ],
+    [
+      'more than 48 layers',
+      (animation) => {
+        for (let i = 0; i < 3; i++)
+          animation.layers.push({ ty: 3, nm: `extra-${i}`, ind: 990 + i, ip: 0, op: 1500, st: 0, ks: {} });
+      },
+      /49 layers exceed 48/,
+    ],
+    [
+      'overlapping binds',
+      (animation) => {
+        animation.markers.push({ cm: 'ct:bind:far', tm: 940, dr: 10 });
+      },
+      /"ct:bind:far" overlaps "ct:bind:far"/,
+    ],
+    [
+      'a cut that leaves the trunk',
+      (animation) => {
+        animation.markers.find(({ cm, tm }) => cm === 'ct:cut:rim-card' && tm === 1353).tm = 1480;
+      },
+      /a "rim-card" cut leaves the trunk/,
+    ],
+    [
+      'a fill inside the trunk',
+      (animation) => {
+        ctMarker(animation, 'ct:fill:rim-card').tm = 100;
+      },
+      /a "rim-card" fill lies inside the trunk/,
+    ],
+    [
+      'a trunk longer than the composition',
+      (animation) => {
+        animation.op = 1000;
+      },
+      /the trunk is longer than the composition/,
+    ],
+    [
+      'a cycle window across a cut boundary',
+      (animation) => {
+        animation.markers.push(
+          { cm: 'ct:cycle:2', tm: 225, dr: 10 },
+          { cm: 'ct:cycle-window:2', tm: 225, dr: 30 },
+        );
+      },
+      /cycle window 2 crosses a cut boundary/,
+    ],
+    [
+      'a cycle window outside the trunk and every fill',
+      (animation) => {
+        animation.markers.push(
+          { cm: 'ct:cycle:3', tm: 1520, dr: 10 },
+          { cm: 'ct:cycle-window:3', tm: 1520, dr: 30 },
+        );
+      },
+      /cycle window 3 lies in neither the trunk nor one fill/,
+    ],
+    [
+      'a travel keyframe outside every bind',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-travel').ks.p.k[0].t = 1.5;
+      },
+      /ct-travel keyframe at frame 1.5 lies outside every ct:bind range/,
+    ],
+    [
+      'an override applied twice',
+      (animation) => {
+        animation.layers.push({ ty: 3, nm: 'anchor:far#rim', ind: 990, ip: 0, op: 1500, st: 0, ks: { p: { a: 0, k: [0, 0, 0] } } });
+      },
+      /anchor:far is overridden twice for "rim"/,
+    ],
+    [
+      'a parented override',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-follow:span-end#rim,platform').parent = 900;
+      },
+      /"ct-follow:span-end#rim,platform" must be an unparented null/,
+    ],
+    [
+      'an override of a missing base',
+      (animation) => {
+        animation.layers.push({ ty: 3, nm: 'ct-follow:copy#rim', ind: 991, ip: 0, op: 1500, st: 0, ks: { p: { a: 0, k: [0, 0, 0] } } });
+      },
+      /"ct-follow:copy#rim" overrides a missing ct-follow:copy/,
+    ],
+    [
+      'a travel override with an anchor point',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-travel#rim,platform').ks.a = { a: 0, k: [5, 0, 0] };
+      },
+      /"ct-travel#rim,platform" must have no anchor point/,
+    ],
+    [
+      'a ct-actor that is not a precomposition',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-actor').ty = 3;
+      },
+      /ct-actor must be a precomposition/,
+    ],
+    [
+      'a moved ct-band',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-band').ks.p = { a: 0, k: [10, 0, 0] };
+      },
+      /ct-band must not be moved, scaled or rotated/,
+    ],
+    [
+      'a ct-band without a rectangle',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'ct-band').shapes = [];
+      },
+      /ct-band must be a shape layer with a static rectangle/,
+    ],
+    [
+      'ct:restore before ct:entry',
+      (animation) => {
+        ctMarker(animation, 'ct:restore').tm = 200;
+      },
+      /ct:restore comes before ct:entry/,
+    ],
+    [
+      'a static track',
+      (_animation, layers) => {
+        layers.find(({ nm }) => nm === 'ct-track:head-free').ks.p = { a: 0, k: [0, 0, 0] };
+      },
+      /ct-track:head-free must have keyframed positions/,
+    ],
+    [
+      'a parented track',
+      (_animation, layers) => {
+        layers.find(({ nm }) => nm === 'ct-track:sled').parent = 1;
+      },
+      /ct-track:sled must be an unparented null/,
+    ],
+    [
+      'a parented reference',
+      (animation) => {
+        animation.layers.find(({ nm }) => nm === 'anchor:stance').parent = 900;
+      },
+      /anchor:stance must be an unparented null with a static position/,
+    ],
+    [
+      'a stretch that does not meet a bind',
+      (animation) => {
+        animation.markers.find(({ cm, tm }) => cm === 'ct:bind:entry-edge' && tm === 0).dr = 0.5;
+      },
+      /the stretch at frame 1 does not lie between two binds/,
+    ],
+    [
+      'a bind with no reference null',
+      (animation) => {
+        animation.markers.find(({ cm, tm }) => cm === 'ct:bind:entry-edge' && tm === 3045).cm = 'ct:bind:exit-edge';
+      },
+      /ct:bind:exit-edge has no anchor:exit-edge reference/,
+    ],
+    [
+      'span references authored toward -x',
+      (animation) => {
+        const start = animation.layers.find(({ nm }) => nm === 'anchor:span-start');
+        const end = animation.layers.find(({ nm }) => nm === 'anchor:span-end');
+        [start.ks.p, end.ks.p] = [end.ks.p, start.ks.p];
+      },
+      /the "ledge-card" span references are not authored toward \+x/,
+    ],
+    [
+      'a reference card without a rectangle',
+      (_animation, layers) => {
+        layers.find(({ nm }) => nm === 'ct-if:copy card-ref').shapes = [];
+      },
+      /ct-if:copy card-ref must hold a static rectangle/,
+    ],
+    [
+      'a copy without a keyframe at ct:entry',
+      (_animation, layers) => {
+        const copy = layers.find(({ nm }) => nm === 'ct-track:copy');
+        for (const key of ['p', 'r', 'o']) copy.ks[key].k = copy.ks[key].k.filter(({ t }) => t !== 240);
+      },
+      /ct-track:copy has no keyframe at ct:entry in "ledge-card"/,
+    ],
+    [
+      'markers that are not a list',
+      (animation) => {
+        animation.markers = {};
+      },
+      /markers is not a list/,
+    ],
+  ])
+    it(`rejects a SnowmanDelivery animation with ${name}`, () => {
+      const { status, output } = check(editSnowman(edit), SNOWMAN_PACK);
+      assert.equal(status, 1);
+      assert.match(output, message);
+    });
+
+  for (const [name, edit] of [
+    [
+      'a travel keyframe on the end of the last bind',
+      (animation) => {
+        animation.markers.find(({ cm, tm }) => cm === 'ct:bind:entry-edge' && tm === 1476).dr = 24;
+      },
+    ],
+    [
+      'a resting copy keyframe outside every range',
+      (_animation, layers) => {
+        const copy = layers.find(({ nm }) => nm === 'ct-track:copy');
+        for (const key of ['p', 'r', 'o']) {
+          const keys = copy.ks[key].k;
+          const previous = [...keys].reverse().find(({ t }) => t < 1550);
+          keys.push({ ...previous, t: 1550, h: 1 });
+          keys.sort((a, b) => a.t - b.t);
+        }
+      },
+    ],
+  ])
+    it(`accepts a SnowmanDelivery animation with ${name}`, () => {
+      const { status, output } = check(editSnowman(edit), SNOWMAN_PACK);
+      assert.equal(status, 0, output);
     });
 });

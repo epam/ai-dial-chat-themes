@@ -56,6 +56,8 @@ const MIN_POSTER_DURATION_MS = 1000;
 const MAX_VERSIONS_PER_PACK = 3;
 /* Lottie caps raised by DIAL Chat S4 (#9223): 512 KiB and 4,000 keyframes per variant. */
 const MAX_KEYFRAMES = 4000;
+/* Raised from 30 by DIAL Chat S7 batch 1 (#9226) for the copy-track SnowmanDelivery. */
+const MAX_LAYERS = 48;
 /* The player DIAL Chat pins (`lottie-web` lottie_light). */
 const MAX_LOTTIE_VERSION = [5, 13, 0];
 
@@ -65,6 +67,7 @@ const CAPABILITIES = new Set([
   'composer-anchor-v1',
   'interaction-composer-outline-v1',
   'interaction-cat-borrow-v1',
+  'interaction-copy-track-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
@@ -304,7 +307,7 @@ const checkLottie = (animation, playbackDurationMs, where) => {
         vertices += value.v.length;
     }
   });
-  if (layers > 30) error(where, `${layers} layers exceed 30`);
+  if (layers > MAX_LAYERS) error(where, `${layers} layers exceed ${MAX_LAYERS}`);
   if (keyframes > MAX_KEYFRAMES) error(where, `${keyframes} keyframes exceed ${MAX_KEYFRAMES}`);
   if (vertices > 8000) error(where, `${vertices} vertices exceed 8000`);
   if (Number.isFinite(fr) && fr > 0 && Number.isFinite(op - ip)) {
@@ -853,6 +856,456 @@ const checkCatBorrow = (animation, where) => {
   }
 };
 
+/* ---------- interaction-copy-track-v1 slots, markers and references ---------- */
+/* The same rules DIAL Chat's adapter applies before playback (libs/celebrations
+   copy-track-adapter, copy-track-markers, lottie-markers), plus the pose checks
+   the asset needs at every splice and cycle boundary. Any of the adapter's rules
+   failing there means the poster instead of the scene, so each one is an error here. */
+const COPY_TRACK = 'interaction-copy-track-v1';
+const CT_SECTIONS = ['ledge-card', 'rim-card', 'rim', 'platform', 'rim-word'];
+const CT_COPY_SECTIONS = new Set(['ledge-card', 'rim-card', 'rim-word']);
+const CT_ANCHORS = ['entry-edge', 'stance', 'copy', 'span-start', 'span-end', 'far', 'exit-edge'];
+const CT_STRETCHABLE = ['span-start', 'span-end', 'far'];
+const CT_CONTACTS = ['grip', 'seat', 'impact', 'lodge', 'slot', 'catch'];
+const CT_SLOTS = ['0', '1', '2', '3', '4', '5', '6', '7'];
+const CT_KINDS = {
+  section: { args: CT_SECTIONS, duration: false },
+  trunk: { duration: true },
+  cut: { args: CT_SECTIONS, duration: true, max: 4 },
+  fill: { args: CT_SECTIONS, duration: true, max: 4 },
+  bind: { args: CT_ANCHORS, duration: true, max: 16, exclusive: true },
+  stretch: { duration: true, max: 12, exclusive: true },
+  cycle: { args: CT_SLOTS, duration: true },
+  'cycle-window': { args: CT_SLOTS, duration: true },
+  entry: { duration: false },
+  restore: { duration: false },
+  contact: { args: CT_CONTACTS, duration: false, max: 8 },
+};
+const CT_EPSILON = 1e-6;
+/* Units within which two poses count as one at a splice or cycle boundary. */
+const CT_POSE_TOLERANCE = 0.25;
+/* Chat's `SNAPSHOT_HIDE_FADE_SHARE`: the copy fades its original in over this share before `ct:entry`. */
+const SNAPSHOT_HIDE_FADE_SHARE = 0.01;
+const CT_OVERRIDABLE = new Set([
+  ...CT_STRETCHABLE.flatMap((anchor) => [`anchor:${anchor}`, `anchor:${anchor}@min`]),
+  ...CT_ANCHORS.map((anchor) => `ct-follow:${anchor}`),
+  'ct-travel',
+]);
+
+const ctEnd = ({ tm, dr }) => tm + dr;
+const ctOverlaps = (a, b) => a.tm < ctEnd(b) - CT_EPSILON && b.tm < ctEnd(a) - CT_EPSILON;
+const ctInside = (inner, from, to) => inner.tm >= from - CT_EPSILON && ctEnd(inner) <= to + CT_EPSILON;
+const ctLabel = ({ kind, arg }) => (arg === undefined ? kind : `${kind}:${arg}`);
+
+/* A keyframed property's value at a frame, as lottie-web evaluates linear, hold and eased segments. */
+const ctBezier = (x1, y1, x2, y2, x) => {
+  const sample = (a, b, t) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  let lo = 0;
+  let hi = 1;
+  let t = x;
+  for (let step = 0; step < 50; step++) {
+    if (sample(x1, x2, t) < x) lo = t;
+    else hi = t;
+    t = (lo + hi) / 2;
+  }
+  return sample(y1, y2, t);
+};
+const ctFirst = (value) => (Array.isArray(value) ? value[0] : value);
+const ctValueAt = (property, frame) => {
+  if (!isRecord(property)) return [0, 0];
+  if (property.a !== 1) return [property.k].flat();
+  const keys = property.k;
+  if (!keys.length) return [0, 0];
+  if (frame <= keys[0].t) return keys[0].s;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    const next = keys[i + 1];
+    if (frame >= key.t && frame < next.t) {
+      if (key.h === 1) return key.s;
+      const share = (frame - key.t) / (next.t - key.t);
+      const eased =
+        key.o && key.i
+          ? ctBezier(ctFirst(key.o.x), ctFirst(key.o.y), ctFirst(key.i.x), ctFirst(key.i.y), share)
+          : share;
+      return key.s.map((value, dim) => value + ((next.s?.[dim] ?? value) - value) * eased);
+    }
+  }
+  return keys[keys.length - 1].s;
+};
+
+/* Returns the valid `ct:` markers, as DIAL Chat's `readNamespacedMarkers` does. */
+const readCopyTrackMarkers = (animation, actorEnd, where) => {
+  const markers = [];
+  if (animation.markers !== undefined && !Array.isArray(animation.markers)) {
+    error(where, 'markers is not a list');
+    return markers;
+  }
+  for (const marker of animation.markers ?? []) {
+    if (!isRecord(marker) || typeof marker.cm !== 'string' || !marker.cm.startsWith('ct:')) continue;
+    const [, kind, arg, ...rest] = marker.cm.split(':');
+    const rule = Object.hasOwn(CT_KINDS, kind) ? CT_KINDS[kind] : undefined;
+    if (!rule || rest.length || (rule.args ? !rule.args.includes(arg) : arg !== undefined)) {
+      error(where, `has an unknown copy-track marker "${marker.cm}"`);
+      continue;
+    }
+    const tm = marker.tm;
+    const dr = marker.dr ?? 0;
+    if (!isFiniteNumber(tm) || !isFiniteNumber(dr) || dr < 0 || tm < 0 || tm + dr > actorEnd || (dr === 0 && tm >= actorEnd)) {
+      error(where, `"${marker.cm}" lies outside frames 0–${actorEnd}`);
+      continue;
+    }
+    if (rule.duration === true && dr <= 0) error(where, `"${marker.cm}" needs a duration`);
+    if (rule.duration === false && dr > 0) error(where, `"${marker.cm}" must not have a duration`);
+    markers.push({ kind, arg, tm, dr });
+  }
+  markers.sort((a, b) => a.tm - b.tm);
+  const counts = new Map();
+  for (const marker of markers) {
+    const key = ctLabel(marker);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    if (counts.get(key) === (CT_KINDS[marker.kind].max ?? 1) + 1) error(where, `"ct:${key}" repeats`);
+  }
+  for (const kind of Object.keys(CT_KINDS).filter((name) => CT_KINDS[name].exclusive)) {
+    const ranges = markers.filter((marker) => marker.kind === kind);
+    ranges.forEach((first, i) => {
+      for (const second of ranges.slice(i + 1))
+        if (first.tm < ctEnd(second) && second.tm < ctEnd(first))
+          error(where, `"ct:${ctLabel(first)}" overlaps "ct:${ctLabel(second)}"`);
+    });
+  }
+  return markers;
+};
+
+const checkCopyTrack = (animation, where) => {
+  if ((animation.ip ?? 0) !== 0) error(where, 'the composition must start at frame 0');
+  /* lottie-web can throw while interpolating from a keyframe with neither a hold nor
+     an easing: the copy track's keys at a splice edge did, while the cat's tangent-free
+     prize keys (see the tests) play. Chat remaps the actor into any frame, so a
+     copy-track asset carries no such key. */
+  walk(animation, (value, path) => {
+    if (!isRecord(value) || value.a !== 1 || !Array.isArray(value.k)) return;
+    const bare = value.k.slice(0, -1).find((key) => isRecord(key) && key.h !== 1 && !(key.o && key.i));
+    if (bare) error(where, `${path} has a keyframe at frame ${bare.t} with neither a hold nor an easing`);
+  });
+  const root = animation.layers ?? [];
+  const actors = root.filter(({ nm }) => nm === 'ct-actor');
+  const travels = root.filter(({ nm }) => nm === 'ct-travel');
+  if (actors.length !== 1) error(where, `needs exactly one top-level ct-actor precomposition, found ${actors.length}`);
+  if (travels.length !== 1) error(where, `needs exactly one top-level ct-travel null, found ${travels.length}`);
+  if (actors.length !== 1 || travels.length !== 1) return;
+  const [actor] = actors;
+  const [travel] = travels;
+  if (actor.ty !== 0) error(where, 'ct-actor must be a precomposition');
+  if (actor.tm !== undefined) error(where, 'ct-actor has its own time remap; the adapter writes it');
+  if ((actor.st ?? 0) !== 0) error(where, 'ct-actor must start at frame 0');
+  if (travel.ty !== 3 || travel.parent !== undefined) error(where, 'ct-travel must be an unparented null');
+  if (travel.ind === undefined || actor.parent !== travel.ind) error(where, 'ct-actor must be parented to ct-travel');
+  const isIdentity = (property, identity) =>
+    property === undefined || (property.a !== 1 && [property.k].flat().slice(0, 2).every((value) => value === identity));
+  for (const layer of [actor, travel])
+    if (!isIdentity(layer.ks?.s, 100) || !isIdentity(layer.ks?.r, 0))
+      error(where, `${layer.nm} scale must be 100 % and rotation 0°, unanimated`);
+  if (!isStaticPoint(travel.ks?.a ?? { a: 0, k: [0, 0] }) || ctValueAt(travel.ks?.a, 0).slice(0, 2).some((v) => v !== 0))
+    error(where, 'ct-travel must have no anchor point');
+  if (!isStaticPoint(actor.ks?.a ?? { a: 0, k: [0, 0] }) || !isStaticPoint(actor.ks?.p ?? { a: 0, k: [0, 0] }))
+    error(where, 'ct-actor anchor and position must be static points');
+  const asset = (animation.assets ?? []).find(({ id }) => id === actor.refId);
+  const layers = asset?.layers ?? [];
+  if (!layers.length) {
+    error(where, 'ct-actor has no layers');
+    return;
+  }
+  const actorEnd = Math.max(...layers.map(({ op }) => op ?? 0));
+
+  const markers = readCopyTrackMarkers(animation, actorEnd, where);
+  const of = (kind) => markers.filter((marker) => marker.kind === kind);
+  const sections = of('section').map(({ arg }) => arg);
+  if (!sections.length) error(where, 'declares no ct:section marker');
+  const trunks = of('trunk');
+  if (trunks.length !== 1) {
+    error(where, `needs exactly one ct:trunk marker, found ${trunks.length}`);
+    return;
+  }
+  const trunk = { from: trunks[0].tm, to: ctEnd(trunks[0]) };
+  if (trunk.to - trunk.from > animation.op + CT_EPSILON) error(where, 'the trunk is longer than the composition');
+  const cuts = of('cut');
+  const fills = of('fill');
+  const splices = {};
+  for (const kind of CT_SECTIONS) {
+    const kindCuts = cuts.filter(({ arg }) => arg === kind);
+    const kindFills = fills.filter(({ arg }) => arg === kind);
+    if (kindCuts.length !== kindFills.length)
+      error(where, `"${kind}" has ${kindCuts.length} cuts and ${kindFills.length} fills`);
+    if (!kindCuts.length) continue;
+    if (!sections.includes(kind)) error(where, `"${kind}" has splices but no section`);
+    splices[kind] = kindCuts.slice(0, kindFills.length).map((cut, i) => {
+      const fill = kindFills[i];
+      if (!ctInside(cut, trunk.from, trunk.to)) error(where, `a "${kind}" cut leaves the trunk`);
+      if (fill.tm < trunk.to - CT_EPSILON) error(where, `a "${kind}" fill lies inside the trunk`);
+      if (Math.abs(cut.dr - fill.dr) > CT_EPSILON) error(where, `a "${kind}" fill does not last as long as its cut`);
+      for (const other of kindCuts.slice(i + 1)) if (ctOverlaps(cut, other)) error(where, `two "${kind}" cuts overlap`);
+      return { cut, fill };
+    });
+  }
+  fills.forEach((fill, i) => {
+    for (const other of fills.slice(i + 1))
+      if (
+        ctOverlaps(fill, other) &&
+        (fill.arg === other.arg || Math.abs(fill.tm - other.tm) > CT_EPSILON || Math.abs(fill.dr - other.dr) > CT_EPSILON)
+      )
+        error(where, `fills at frames ${fill.tm} and ${other.tm} overlap`);
+  });
+  const binds = of('bind');
+  const stretches = of('stretch');
+  for (const stretch of stretches)
+    for (const bind of binds) if (ctOverlaps(stretch, bind)) error(where, `a stretch at frame ${stretch.tm} overlaps a bind`);
+  const cycleMarkers = of('cycle');
+  const windows = of('cycle-window');
+  if (cycleMarkers.length !== windows.length) error(where, 'every ct:cycle needs exactly one ct:cycle-window');
+  const cycles = [];
+  for (const window of windows) {
+    const cycle = cycleMarkers.find(({ arg }) => arg === window.arg);
+    if (!cycle) {
+      error(where, `cycle window ${window.arg} has no cycle`);
+      continue;
+    }
+    const isInTrunk = ctInside(window, trunk.from, trunk.to);
+    if (!isInTrunk && !fills.some((fill) => ctInside(window, fill.tm, ctEnd(fill))))
+      error(where, `cycle window ${window.arg} lies in neither the trunk nor one fill`);
+    if (isInTrunk && cuts.some((cut) => ctOverlaps(cut, window) && !ctInside(window, cut.tm, ctEnd(cut))))
+      error(where, `cycle window ${window.arg} crosses a cut boundary`);
+    if (!ctInside(cycle, window.tm, ctEnd(window))) error(where, `cycle ${window.arg} lies outside its window`);
+    cycles.push({ cycle, window });
+  }
+  const [entry] = of('entry');
+  const [restore] = of('restore');
+  const copySections = sections.filter((kind) => CT_COPY_SECTIONS.has(kind));
+  if (copySections.length && (!entry || !restore))
+    error(where, 'a section copies but ct:entry or ct:restore is missing');
+  if (entry && restore && restore.tm < entry.tm) error(where, 'ct:restore comes before ct:entry');
+
+  /* Slots and references, as Chat's `findLayer`, `readReferences` and `bandOf` read them. */
+  const one = (list, name) => {
+    const found = list.filter(({ nm }) => nm === name);
+    if (found.length !== 1) error(where, `needs exactly one ${name} layer, found ${found.length}`);
+    return found[0];
+  };
+  one(layers, 'ct-track:root');
+  if (copySections.length) one(layers, 'ct-track:copy');
+  const isMovedBy = (property, identity) => property !== undefined && !isIdentity(property, identity);
+  const band = one(root, 'ct-band');
+  if (band) {
+    const items = (band.shapes ?? []).flatMap((shape) => (shape.ty === 'gr' ? shape.it ?? [] : [shape]));
+    const rectangle = items.find((item) => item.ty === 'rc');
+    const group = items.find((item) => item.ty === 'tr');
+    if (band.ty !== 4 || !rectangle || !isStaticPoint(rectangle.p) || !isStaticPoint(rectangle.s))
+      error(where, 'ct-band must be a shape layer with a static rectangle');
+    if (
+      [band.ks?.p, band.ks?.a, group?.p, group?.a].some((property) => isMovedBy(property, 0)) ||
+      [band.ks?.s, group?.s].some((property) => isMovedBy(property, 100)) ||
+      [band.ks?.r, group?.r].some((property) => isMovedBy(property, 0))
+    )
+      error(where, 'ct-band must not be moved, scaled or rotated');
+  }
+  const cardSections = sections.filter((kind) => kind.endsWith('-card'));
+  if (cardSections.length) {
+    const card = one(layers, 'ct-if:copy card-ref');
+    const rectangle = (card?.shapes ?? [])
+      .flatMap((shape) => (shape.ty === 'gr' ? shape.it ?? [] : [shape]))
+      .find((item) => item.ty === 'rc');
+    if (card && (!rectangle || !isStaticPoint(rectangle.s)))
+      error(where, 'ct-if:copy card-ref must hold a static rectangle, the reference card');
+  }
+  const referenceAt = (list, name) => {
+    const layer = one(list, name);
+    if (!layer) return undefined;
+    if (layer.ty !== 3 || layer.parent !== undefined || !isStaticPoint(layer.ks?.p)) {
+      error(where, `${name} must be an unparented null with a static position`);
+      return undefined;
+    }
+    return ctValueAt(layer.ks.p, 0);
+  };
+  referenceAt(root, 'anchor:stance');
+  referenceAt(root, 'anchor:entry-edge');
+  for (const anchor of CT_STRETCHABLE) {
+    referenceAt(root, `anchor:${anchor}`);
+    referenceAt(root, `anchor:${anchor}@min`);
+  }
+
+  /* Section overrides: `<base>#<kind>[,<kind>…]`. */
+  const overrides = new Map();
+  for (const layer of root) {
+    const name = layer.nm;
+    if (typeof name !== 'string' || !name.includes('#')) continue;
+    const at = name.indexOf('#');
+    const base = name.slice(0, at);
+    const kinds = name.slice(at + 1).split(',');
+    if (!CT_OVERRIDABLE.has(base)) error(where, `"${name}" overrides no reference`);
+    else if (root.filter(({ nm }) => nm === base).length !== 1) error(where, `"${name}" overrides a missing ${base}`);
+    for (const kind of kinds) {
+      if (!sections.includes(kind)) error(where, `"${name}" names no declared section "${kind}"`);
+      const key = `${base}#${kind}`;
+      if (overrides.has(key)) error(where, `${base} is overridden twice for "${kind}"`);
+      overrides.set(key, layer);
+    }
+    if (layer.ty !== 3 || layer.parent !== undefined) error(where, `"${name}" must be an unparented null`);
+    if (base === 'ct-travel') {
+      if (!isIdentity(layer.ks?.s, 100) || !isIdentity(layer.ks?.r, 0)) error(where, `"${name}" must not scale or rotate`);
+      if (isMovedBy(layer.ks?.a, 0)) error(where, `"${name}" must have no anchor point`);
+    } else if (!isStaticPoint(layer.ks?.p)) error(where, `"${name}" must have a static position`);
+  }
+  /* The root one section sees: its overrides replace the base layers. */
+  const layerFor = (kind, name) => overrides.get(`${name}#${kind}`) ?? root.find(({ nm }) => nm === name);
+  const pointFor = (kind, anchor) => {
+    const layer = layerFor(kind, `anchor:${anchor}`);
+    return layer && isStaticPoint(layer.ks?.p) ? ctValueAt(layer.ks.p, 0) : undefined;
+  };
+  for (const kind of sections) {
+    const x = (anchor) => pointFor(kind, anchor)?.[0];
+    if (
+      !(x('span-end') > x('span-start')) ||
+      !(x('span-end@min') > x('span-start@min')) ||
+      !(x('span-end') > x('span-end@min'))
+    )
+      error(where, `the "${kind}" span references are not authored toward +x`);
+  }
+  for (const argument of new Set(binds.map(({ arg }) => arg)))
+    if (!root.some(({ nm }) => nm === `anchor:${argument}`))
+      error(where, `ct:bind:${argument} has no anchor:${argument} reference`);
+  for (const stretch of stretches)
+    if (
+      !binds.some((bind) => Math.abs(ctEnd(bind) - stretch.tm) <= CT_EPSILON) ||
+      !binds.some((bind) => Math.abs(bind.tm - ctEnd(stretch)) <= CT_EPSILON)
+    )
+      error(where, `the stretch at frame ${stretch.tm} does not lie between two binds`);
+
+  /* Coverage, by Chat's rule: ranges are half-open, and a frame on an end no range
+     continues belongs to the range it ends. A track key equal to the one before it rests. */
+  const rangeAt = (list, frame) =>
+    list.find((range) => frame >= range.tm - CT_EPSILON && frame < ctEnd(range) - CT_EPSILON) ??
+    list.find((range) => Math.abs(frame - ctEnd(range)) <= CT_EPSILON);
+  const ranges = [...binds, ...stretches];
+  const tracks = layers.filter(({ nm }) => typeof nm === 'string' && nm.startsWith('ct-track:'));
+  for (const track of tracks) {
+    const position = track.ks?.p;
+    if (track.ty !== 3 || track.parent !== undefined) error(where, `${track.nm} must be an unparented null`);
+    if (position?.a !== 1 || !Array.isArray(position.k)) {
+      error(where, `${track.nm} must have keyframed positions`);
+      continue;
+    }
+    for (const [index, key] of position.k.entries()) {
+      if (!isZeroTangent(key.to) || !isZeroTangent(key.ti)) {
+        error(where, `${track.nm} keyframes must have no spatial tangents`);
+        break;
+      }
+      const previous = position.k[index - 1];
+      const rests =
+        previous &&
+        Math.abs(previous.s?.[0] - key.s?.[0]) < CT_EPSILON &&
+        Math.abs(previous.s?.[1] - key.s?.[1]) < CT_EPSILON;
+      if (!rests && !rangeAt(ranges, key.t)) {
+        error(where, `${track.nm} keyframe at frame ${key.t} lies outside every ct:bind and ct:stretch range`);
+        break;
+      }
+    }
+  }
+
+  /* Each section, read through its own path: travel binds, cycles, copy entry, hide window and poses. */
+  const shownIn = (track, kind) => {
+    const hidden = CT_COPY_SECTIONS.has(kind) ? 'ct-if:no-copy' : 'ct-if:copy';
+    const children = layers.filter((layer) => track.ind !== undefined && layer.parent === track.ind);
+    return !children.length || !children.every(({ nm }) => nm?.startsWith(hidden));
+  };
+  const differs = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) > CT_POSE_TOLERANCE;
+  for (const kind of sections) {
+    const list = splices[kind] ?? [];
+    const onPath = (frame) => {
+      const splice = list.find(({ cut }) => frame >= cut.tm - CT_EPSILON && frame <= ctEnd(cut) + CT_EPSILON);
+      return splice ? splice.fill.tm + (frame - splice.cut.tm) : frame;
+    };
+    /* A fill lasts as long as its cut, so a composition frame shows the same frame or its fill. */
+    const sectionTravel = layerFor(kind, 'ct-travel');
+    const travelKeys = sectionTravel?.ks?.p?.a === 1 ? sectionTravel.ks.p.k : [];
+    for (const key of travelKeys) {
+      const range = rangeAt(binds, onPath(key.t));
+      if (!range) {
+        error(where, `${sectionTravel.nm} keyframe at frame ${key.t} lies outside every ct:bind range in "${kind}"`);
+        break;
+      }
+    }
+    const shown = tracks.filter((track) => shownIn(track, kind));
+    for (const { cycle, window } of cycles) {
+      const inTrunk = ctInside(window, trunk.from, trunk.to);
+      const replaced = list.some(({ cut }) => ctInside(window, cut.tm, ctEnd(cut)));
+      const inOwnFill = list.some(({ fill }) => ctInside(window, fill.tm, ctEnd(fill)));
+      if (!((inTrunk && !replaced) || inOwnFill)) continue;
+      const compositionFrame = (frame) => {
+        const splice = list.find(({ fill }) => frame >= fill.tm - CT_EPSILON && frame <= ctEnd(fill) + CT_EPSILON);
+        return splice ? splice.cut.tm + (frame - splice.fill.tm) : frame;
+      };
+      const travelled =
+        ctValueAt(sectionTravel?.ks?.p, compositionFrame(ctEnd(window)))[0] -
+        ctValueAt(sectionTravel?.ks?.p, compositionFrame(window.tm))[0];
+      if (!(Math.abs(travelled) > 0)) error(where, `cycle window ${window.arg} has no authored travel in "${kind}"`);
+      for (const track of shown) {
+        const keys = track.ks?.p?.a === 1 ? track.ks.p.k : [];
+        if (!keys.some(({ t }) => t > cycle.tm + CT_EPSILON && t < ctEnd(cycle) - CT_EPSILON)) continue;
+        const at = (frame) => keys.find(({ t }) => Math.abs(t - frame) <= CT_EPSILON);
+        const first = at(cycle.tm);
+        const last = at(ctEnd(cycle));
+        if (!first || !last) error(where, `${track.nm} has no keyframe at an edge of cycle ${cycle.arg}`);
+        else if (differs(first.s, last.s)) error(where, `${track.nm} does not close cycle ${cycle.arg}`);
+      }
+    }
+    if (CT_COPY_SECTIONS.has(kind) && entry && restore) {
+      const length = trunk.to - trunk.from;
+      const hideAt = entry.tm / length;
+      if (!(hideAt >= SNAPSHOT_HIDE_FADE_SHARE && hideAt <= restore.tm / length))
+        error(where, `ct:entry lies outside the hide window in "${kind}"`);
+      if (kind.endsWith('-card')) {
+        const copy = layers.find(({ nm }) => nm === 'ct-track:copy');
+        const keys = copy?.ks?.p?.a === 1 ? copy.ks.p.k : [];
+        if (!keys.some(({ t }) => Math.abs(t - onPath(entry.tm)) <= CT_EPSILON))
+          error(where, `ct-track:copy has no keyframe at ct:entry in "${kind}"`);
+      }
+    }
+    /* Poses at every splice edge the section plays through, in world space (track
+       plus this section's travel), for each track that is visible there: the copy
+       between ct:entry and ct:restore, any other track while a child shows. */
+    const isVisibleAt = (track, frame) => {
+      if (track.nm === 'ct-track:copy')
+        return !!entry && !!restore && frame >= entry.tm - CT_EPSILON && frame <= restore.tm + CT_EPSILON;
+      const children = layers.filter((layer) => track.ind !== undefined && layer.parent === track.ind);
+      return (
+        !children.length ||
+        children.some(
+          (child) =>
+            frame >= (child.ip ?? 0) && frame < (child.op ?? Infinity) && ctValueAt(child.ks?.o, frame)[0] > 0,
+        )
+      );
+    };
+    for (const { cut, fill } of list)
+      for (const [trunkFrame, fillFrame] of [
+        [cut.tm, fill.tm],
+        [ctEnd(cut), ctEnd(fill)],
+      ]) {
+        /* Nothing plays after a fill that runs to the end of the trunk. */
+        if (trunkFrame >= trunk.to - CT_EPSILON) continue;
+        const travelAt = ctValueAt(sectionTravel?.ks?.p, trunkFrame);
+        const baseTravel = ctValueAt(travel.ks?.p, trunkFrame);
+        for (const track of shown.filter(
+          (item) => isVisibleAt(item, trunkFrame) || isVisibleAt(item, fillFrame),
+        )) {
+          const before = ctValueAt(track.ks?.p, trunkFrame);
+          const after = ctValueAt(track.ks?.p, fillFrame);
+          if (differs([before[0] + baseTravel[0], before[1] + baseTravel[1]], [after[0] + travelAt[0], after[1] + travelAt[1]]))
+            error(where, `${track.nm} does not match its pose at the "${kind}" splice edge ${trunkFrame}`);
+        }
+      }
+  }
+};
+
+
 const checkLabels = (labels, where) => {
   const ids = new Set();
   if (labels === undefined) return ids;
@@ -1018,8 +1471,13 @@ const checkManifest = (entry, file) => {
       error(where, `${path} requires ${CAT_BORROW} without composer-anchor-v1 placement`);
     if (needsCatBorrow && scene.direction !== 'none')
       error(where, `${path} requires ${CAT_BORROW} with direction ${scene.direction}; it needs none`);
-    if (needsCatBorrow && needsOutline)
-      error(where, `${path} requires both interaction adapters`);
+    const needsCopyTrack = (scene.requiredCapabilities ?? []).includes(COPY_TRACK);
+    if (needsCopyTrack && !isAnchored)
+      error(where, `${path} requires ${COPY_TRACK} without composer-anchor-v1 placement`);
+    if (needsCopyTrack && scene.direction !== 'none')
+      error(where, `${path} requires ${COPY_TRACK} with direction ${scene.direction}; it needs none`);
+    if ((scene.requiredCapabilities ?? []).filter((capability) => capability.startsWith('interaction-')).length > 1)
+      error(where, `${path} requires more than one interaction adapter`);
     const hasTiming = checkTiming(scene, where, path);
     if (!['none', 'mirror', 'variant'].includes(scene.direction))
       error(where, `${path}.direction ${scene.direction} is invalid`);
@@ -1070,6 +1528,7 @@ const checkManifest = (entry, file) => {
           checkLottie(animation, scene.timing.playbackDurationMs, file);
           if (needsOutline && isAnchored) checkComposerOutlineSlots(animation, file);
           if (needsCatBorrow && isAnchored) checkCatBorrow(animation, file);
+          if (needsCopyTrack && isAnchored) checkCopyTrack(animation, file);
         }
         if (isAnchored && placement?.template === 'composer-anchor-v1')
           checkAnchorInsideStage(animation, placement, file);
