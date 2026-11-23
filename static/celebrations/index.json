@@ -23,6 +23,16 @@
       }
     },
     {
+      "packId": "new-year-default",
+      "version": "1.2.0",
+      "eventId": "new-year",
+      "manifest": {
+        "path": "new-year-default/1.2.0/manifest.json",
+        "bytes": 7694,
+        "sha256": "6675b89a196b148a3b4d1bf42ed753a5d97503e95093e6041bf091829153d764"
+      }
+    },
+    {
       "packId": "halloween-default",
       "version": "1.0.0",
       "eventId": "halloween",
@@ -56,7 +66,7 @@
   "defaults": {
     "new-year": {
       "packId": "new-year-default",
-      "version": "1.1.1"
+      "version": "1.2.0"
     },
     "halloween": {
       "packId": "halloween-default",

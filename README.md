@@ -267,15 +267,19 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   ├── 1.1.0/                         # immutable previous version, kept for rollback
-│   └── 1.1.1/
+│   ├── 1.1.0/                         # immutable once published
+│   ├── 1.1.1/                         # previous version, kept for rollback
+│   └── 1.2.0/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
 │       ├── bullfinch-couriers.poster.<sha256 prefix>.svg
 │       ├── gift-wrapping.desktop.<sha256 prefix>.json
 │       ├── gift-wrapping.mobile.<sha256 prefix>.json   # variant with its own placement
-│       └── gift-wrapping.poster.<sha256 prefix>.svg
+│       ├── gift-wrapping.poster.<sha256 prefix>.svg
+│       ├── snowman-delivery.desktop.<sha256 prefix>.json   # copy-track scene, one variant per layout
+│       ├── snowman-delivery.mobile.<sha256 prefix>.json
+│       └── snowman-delivery.poster.<sha256 prefix>.svg
 ├── halloween-default/
 │   └── 1.0.0/
 │       ├── manifest.json
@@ -297,7 +301,7 @@ static/celebrations/
 
 - `index.json` lists each published version with its manifest `path`, `bytes` and `sha256`, and `defaults` names the version each event uses.
 - A manifest declares every file of its version directory with `assetId`, `file`, `mediaType`, `bytes` and `sha256`. File names and asset IDs end with the first 16 hex characters of the file's SHA-256, so a changed file always gets a new name.
-- Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 30 layers, 4,000 keyframes, 8,000 vertices and 512 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
+- Animations are Lottie JSON for the `lottie_light` SVG player: shape, null and precomp layers only, no text, images, expressions or effects, at most 48 layers, 4,000 keyframes, 8,000 vertices and 512 KiB per file. Posters and icons are static SVG without scripts or external references, at most 100 KiB.
 
 New Year `1.1.1` refines the artwork and staging of both existing scenes. The
 bullfinches keep their complete silhouette while turning, and their larger,
@@ -350,6 +354,27 @@ Composition markers starting with `cat:` time the stories: `cat:section:<story>`
 Every story Chat can choose must carry the markers it reads for that story: `cat:entry:<n>` and `cat:release:<n>` for each borrowed button, the last one's `cat:landing:<n>`, and `cat:restore`. Each entry lies between 1% of the story and `cat:restore`, every `prize-<n>` keyframe up to the release plays in that story, and no story lasts longer than the composition's `op`. Only the last borrowed button's landing is elastic: its optional duration is the range that absorbs the measured fall, so that landing must come after its release, and the range must not cross the step from the two-prize story into the one-prize tail.
 
 Chat rejects the scene before playback — and plays the poster — when any of these rules fails; the check below applies all of them for every story. What depends on the measured page stays a runtime decision: a fall that the elastic range cannot absorb at 0.8–1.25 × speed drops that button from the story, and a page with no reachable button and no `crossing` story, or a copy still falling at `cat:restore`, shows the poster.
+
+### Copy-track scenes
+
+A scene that requires `interaction-copy-track-v1` (the New Year `snowman-delivery`) tells one authored story on the page: the snowman may borrow a starter card through a reversible copy, ride it as a sled and return it to its original. Chat chooses the first authored section whose stage fits what it measures — `ledge-card` under the starter row, `rim-card` on the composer edge with a card from the row above, `rim` with the drawn sled, `platform` below the page content — or shows the poster. It fits the asset to the page by moving authored keyframes only; it never creates a pose, a timing or a keyframe. The scene needs `composer-anchor-v1` placement on the scene and every variant and `direction: "none"`, and requires no other `interaction-*` adapter. The New Year pack fixes the scale through `scale.min = scale.max` (0.9 on desktop, 0.68 on mobile).
+
+Chat reads these layers by name and changes nothing else:
+
+- `ct-travel`: exactly one unparented top-level null with no anchor point and an unanimated 100 % scale and 0° rotation. Its position moves linearly in the walk windows and holds elsewhere; every keyframe lies inside a `ct:bind:<anchor>` range.
+- `ct-actor`: exactly one top-level precomposition parented to `ct-travel`, starting at frame 0 in a composition that starts at frame 0, with a static anchor and position, an unanimated 100 % scale and 0° rotation, and no time remap of its own. Chat writes its time remap to splice the chosen section in and to repeat step cycles over the measured distance.
+- `ct-track:<name>` (inside `ct-actor`): unparented nulls with keyframed positions, the stations, with no spatial tangents. Each keyframe lies inside a `ct:bind` or `ct:stretch` range, or repeats the one before it (a resting object). `ct-track:root` is required, and `ct-track:copy` when a section copies; a card section's copy needs a keyframe at `ct:entry`, read through the section's splices.
+- `ct-facing` (inside `ct-actor`, optional): a null whose hold x-scale keyframes carry the facing.
+- `ct-if:copy card-ref` (inside `ct-actor`): required by card sections, one static rectangle, the reference card the grips are authored for.
+- `ct-if:copy…` and `ct-if:no-copy…` (inside `ct-actor`): shown only when the chosen section has, or has no, copy.
+- `ct-follow:<anchor>`: unparented nulls whose children move rigidly with that anchor.
+- `ct-band`: one shape layer holding a static rectangle, the cast band at the reference floor; neither the layer nor its group is moved, scaled or rotated.
+- `anchor:<name>`: unparented nulls with a static position: `stance`, `entry-edge`, every anchor a `ct:bind` names, and for each stretchable anchor (`span-start`, `span-end`, `far`) both `anchor:<name>` (maximum span) and `anchor:<name>@min` (minimum span), authored toward +x.
+- `<base>#<kind>[,<kind>…]`: an unparented null that overrides, for the named declared sections only, a stretchable reference (`anchor:<name>`, `anchor:<name>@min`), the position of a `ct-follow:<anchor>` group, or the keyframes of `ct-travel`. Each base is overridden at most once per section. Follow groups and `ct-band` stay authored against the base references.
+
+Composition markers starting with `ct:` time the story, in actor frames: `ct:section:<kind>` in priority order, one `ct:trunk`, `ct:cut:<kind>` and `ct:fill:<kind>` pairs of equal length (fills after the trunk; two kinds may share one fill only exactly), non-overlapping `ct:bind:<anchor>` and `ct:stretch` ranges (each stretch exactly between two binds; ranges are half-open, and a frame on an end no range continues belongs to the range it ends), `ct:cycle:<n>` with one `ct:cycle-window:<n>` each (wholly in the trunk, inside or outside one cut, or wholly in one fill), `ct:entry` before `ct:restore` when a section copies, and `ct:contact:<k>` instants for the checks.
+
+Every keyframe but the last of each property needs a hold or an easing: the player can throw while interpolating from a bare key (it did for a copy track's splice-edge keys), and Chat may remap the actor into any frame. The check also proves what the asset owes the player: at every splice edge each track visible there keeps its world pose (track plus that section's travel), and each track a section shows closes every cycle that section plays, with a keyframe at both edges, both within 0.25 units.
 
 ### Composer-carry scenes
 
@@ -443,7 +468,7 @@ node scripts/check-celebration-packs.mjs
 node --test scripts/check-celebration-packs.test.mjs
 ```
 
-The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, the cat-borrow rules, and composer-carry hierarchy, travel, side-slot and placement rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
+The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, the copy-track slot, marker, reference, override, pose and layer-cap rules, and composer-carry hierarchy, travel, side-slot and placement rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
 
 ### Publish a Pack Version
 
