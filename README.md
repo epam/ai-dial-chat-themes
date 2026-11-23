@@ -144,6 +144,9 @@ make run
     "launchpad-logo-light": "", //light appearance logo for DIAL Launchpad
     "launchpad-logo-dark": "", //dark appearance logo for DIAL Launchpad
     "launchpad-favicon": "", //favicon for DIAL Launchpad
+    "user-profile-logo-light": "", //light appearance logo for User Profile
+    "user-profile-logo-dark": "", //dark appearance logo for User Profile
+    "user-profile-favicon": "", //favicon for User Profile
   }
 }
 ```
@@ -166,6 +169,15 @@ do not change Chat, Admin or Model Garden branding. Launchpad loads relative
 filenames through its BFF theme-image endpoint and shows its built-in logo when
 a key or image is unavailable. The optional `launchpad-favicon` key specifies
 the favicon; the supplied SVG is `static/launchpad-favicon.svg`.
+
+User Profile uses `user-profile-logo-dark` for the resolved `dark` theme,
+including System with a dark operating system, and `user-profile-logo-light`
+for other themes. The SVGs include the product mark and wordmark as outlines,
+so they require no external font. Relative filenames load through the BFF
+image endpoint; missing or failed logos keep the built-in mark and label.
+The `user-profile-favicon` key points to the existing
+`static/user-portal-favicon.svg`, also used for Launchpad's User Profile card.
+The application keeps its bundled favicon until the configured image loads.
 
 ### Customize Theme Colors
 

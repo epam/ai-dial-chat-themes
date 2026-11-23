@@ -539,6 +539,8 @@
     "launchpad-logo-light": "launchpad-logo-light.svg",
     "launchpad-logo-dark": "launchpad-logo-dark.svg",
     "launchpad-favicon": "launchpad-favicon.svg",
-    "user-profile-favicon": "user-profile-favicon.svg"
+    "user-profile-logo-light": "user-profile-logo-light.svg",
+    "user-profile-logo-dark": "user-profile-logo-dark.svg",
+    "user-profile-favicon": "user-portal-favicon.svg"
   }
 }
