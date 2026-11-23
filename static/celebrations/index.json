@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2026-11-20.1",
+  "revision": "2026-11-23.3",
   "packs": [
     {
       "packId": "new-year-default",
@@ -51,6 +51,16 @@
         "bytes": 2455,
         "sha256": "1064aabf1438f2b61bb630e9473d63022b65fe909d2a52de451eeb9210deabb6"
       }
+    },
+    {
+      "packId": "new-year-polar-bears",
+      "version": "1.0.0",
+      "eventId": "new-year-polar-bears",
+      "manifest": {
+        "path": "new-year-polar-bears/1.0.0/manifest.json",
+        "bytes": 3360,
+        "sha256": "b0b465aaff2a801329589ba6eaa4e9f26175c07151920a4881c19434f95e448e"
+      }
     }
   ],
   "defaults": {
@@ -64,6 +74,10 @@
     },
     "company-anniversary": {
       "packId": "company-anniversary",
+      "version": "1.0.0"
+    },
+    "new-year-polar-bears": {
+      "packId": "new-year-polar-bears",
       "version": "1.0.0"
     }
   }
