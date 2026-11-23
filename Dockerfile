@@ -1,4 +1,4 @@
-FROM nginxinc/nginx-unprivileged:1.31.7-alpine-otel
+FROM nginxinc/nginx-unprivileged:1.31.9-alpine-slim
 
 USER 0
 RUN apk upgrade --no-cache \
