@@ -3,7 +3,7 @@
  * placements, composer-outline slots, cat-borrow slots and markers,
  * composer-carry tracks, and copy-track slots, markers, references and
  * poses. Each case copies static/celebrations into a temporary directory,
- * breaks one thing in new-year-default@1.1.1 or @1.2.0,
+ * breaks one thing in new-year-default@1.2.0,
  * new-year-polar-bears@1.0.0 or halloween-default@1.0.0,
  * re-hashes what it changed and expects the checker to fail with a message.
  *
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 const SCRIPTS = dirname(fileURLToPath(import.meta.url));
 const SOURCE = join(SCRIPTS, '../static/celebrations');
-const PACK = 'new-year-default/1.1.1';
+const PACK = 'new-year-default/1.2.0';
 const CAT_PACK = 'halloween-default/1.0.0';
 const SNOWMAN_PACK = 'new-year-default/1.2.0';
 const CARRY_PACK = 'new-year-polar-bears/1.0.0';
