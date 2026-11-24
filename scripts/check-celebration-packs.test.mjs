@@ -1,9 +1,10 @@
 /*
  * Proves that check-celebration-packs.mjs rejects broken composer-anchor
- * placements, composer-outline slots, cat-borrow slots and markers, and
- * copy-track slots, markers, references and poses. Each case copies
- * static/celebrations into a temporary directory, breaks one thing in
- * new-year-default@1.1.0 or @1.2.0 or halloween-default@1.0.0,
+ * placements, composer-outline slots, cat-borrow slots and markers,
+ * composer-carry tracks, and copy-track slots, markers, references and
+ * poses. Each case copies static/celebrations into a temporary directory,
+ * breaks one thing in new-year-default@1.1.0 or @1.2.0,
+ * new-year-polar-bears@1.0.0 or halloween-default@1.0.0,
  * re-hashes what it changed and expects the checker to fail with a message.
  *
  * Usage: node --test scripts/check-celebration-packs.test.mjs
@@ -28,6 +29,7 @@ const SOURCE = join(SCRIPTS, '../static/celebrations');
 const PACK = 'new-year-default/1.1.0';
 const CAT_PACK = 'halloween-default/1.0.0';
 const SNOWMAN_PACK = 'new-year-default/1.2.0';
+const CARRY_PACK = 'new-year-polar-bears/1.0.0';
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const directories = [];
 
@@ -97,6 +99,13 @@ const editOutline = (edit) => (root, manifest) =>
   replaceAnimation(root, manifest, desktopAnimationId(manifest), (animation) =>
     edit(animation, animation.layers.find(({ nm }) => nm === 'composer-outline')),
   );
+
+const carryScene = (manifest) => manifest.scenes.find(({ id }) => id === 'polar-bears-workshop');
+const carrySlot = (animation, name = 'composer-carry') => animation.layers.find(({ nm }) => nm === name);
+const editCarry = (edit) => (root, manifest) =>
+  replaceAnimation(root, manifest,
+    carryScene(manifest).variants.find(({ when }) => when.layout === 'desktop').animationAssetId,
+    (animation) => edit(animation, carrySlot(animation)), CARRY_PACK);
 
 const catScene = (manifest) => manifest.scenes.find(({ id }) => id === 'cat');
 
@@ -1095,4 +1104,89 @@ describe('check-celebration-packs', () => {
       const { status, output } = check(editSnowman(edit), SNOWMAN_PACK);
       assert.equal(status, 0, output);
     });
+});
+
+describe('composer carry', () => {
+  for (const [name, edit, message] of [
+    ['missing carrier', (a) => { a.layers = a.layers.filter(({ nm }) => nm !== 'composer-carry'); }, /needs exactly one composer-carry null/],
+    ['duplicate decoration', (a) => { a.layers.push(structuredClone(carrySlot(a, 'composer-decoration'))); }, /needs exactly one composer-decoration null/],
+    ['shape carrier', (_a, c) => { c.ty = 4; }, /needs exactly one composer-carry null/],
+    ['fractional slot index', (_a, c) => { c.ind = 1.5; }, /identity transform/],
+    ['nonzero anchor', (_a, c) => { c.ks.a.k[0] = 1; }, /identity transform/],
+    ['animated scale', (_a, c) => { c.ks.s = { a: 1, k: [{ t: 0, s: [100, 100, 100], h: 1 }] }; }, /identity transform/],
+    ['rotation', (_a, c) => { c.ks.r = { a: 0, k: 1 }; }, /identity transform/],
+    ['skew', (_a, c) => { c.ks.sk = { a: 0, k: 1 }; }, /identity transform/],
+    ['auto orientation', (_a, c) => { c.ao = 1; }, /identity transform/],
+    ['shifted start', (_a, c) => { c.st = 1; }, /identity transform/],
+    ['time stretch', (_a, c) => { c.sr = 2; }, /identity transform/],
+    ['time remap', (_a, c) => { c.tm = { a: 0, k: 0 }; }, /identity transform/],
+    ['parented carrier', (a, c) => { c.parent = carrySlot(a, 'composer-decoration').ind; }, /opaque unparented root/],
+    ['transparent carrier', (_a, c) => { c.ks.o.k = 99; }, /opaque unparented root/],
+    ['moved decoration', (a) => { carrySlot(a, 'composer-decoration').ks.p.k[0] = 1; }, /stationary direct child/],
+    ['indirect decoration', (a) => { carrySlot(a, 'composer-decoration').parent = carrySlot(a, 'composer-side').ind; }, /stationary direct child/],
+    ['duplicate indices', (a, c) => { a.layers.find(({ ty }) => ty === 4).ind = c.ind; }, /duplicate layer indices/],
+    ['unparented artwork', (a) => { delete a.layers.find(({ ty }) => ty === 4).parent; }, /must descend from composer-carry/],
+    ['missing parent', (a) => { a.layers.find(({ ty }) => ty === 4).parent = 999; }, /must descend from composer-carry/],
+    ['parent cycle', (a) => { const layer = a.layers.find(({ ty }) => ty === 4); layer.parent = layer.ind; }, /must descend from composer-carry/],
+    ['nonzero in point', (a) => { a.ip = 1; }, /timeline starting at zero/],
+    ['excess duration', (a) => { a.op = 1800; }, /at most 29750 ms/],
+    ['static carry position', (_a, c) => { c.ks.p = { a: 0, k: [0, 0, 0] }; }, /2\.\.64 keyframes/],
+    ['one carry key', (_a, c) => { c.ks.p.k = c.ks.p.k.slice(0, 1); }, /2\.\.64 keyframes/],
+    ['too many carry keys', (a, c) => { c.ks.p.k = Array.from({ length: 65 }, (_, i) => ({ t: i * a.op / 64, s: [0, 0, 0], h: 1 })); }, /2\.\.64 keyframes/],
+    ['unordered carry times', (_a, c) => { c.ks.p.k[1].t = 0; }, /invalid keyframe/],
+    ['nonfinite carry value', (_a, c) => { c.ks.p.k[1].s[0] = Infinity; }, /invalid keyframe/],
+    ['out-of-range carry value', (_a, c) => { c.ks.p.k[1].s[0] = 1001; }, /invalid keyframe/],
+    ['vertical travel', (_a, c) => { c.ks.p.k[1].s[1] = 1; }, /invalid keyframe/],
+    ['spatial tangent', (_a, c) => { c.ks.p.k[1].to = [1, 0, 0]; }, /invalid keyframe/],
+    ['end value', (_a, c) => { c.ks.p.k[1].e = [0, 0, 0]; }, /invalid keyframe/],
+    ['invalid hold', (_a, c) => { c.ks.p.k[1].h = 2; }, /invalid keyframe/],
+    ['missing paired easing', (_a, c) => { c.ks.p.k[1].o = { x: 0.3, y: 0 }; delete c.ks.p.k[1].i; }, /finite cubic curves/],
+    ['out-of-range later curve component', (_a, c) => { c.ks.p.k[1].o = { x: [0.3, 2], y: [0, 0] }; }, /finite cubic curves/],
+    ['empty curve array', (_a, c) => { c.ks.p.k[1].o = { x: [], y: [] }; }, /finite cubic curves/],
+    ['moving start', (_a, c) => { c.ks.p.k[0].s[0] = 1; }, /start and end at rest/],
+    ['early last key', (_a, c) => { c.ks.p.k.at(-1).t -= 1; }, /start and end at rest/],
+    ['moving end', (_a, c) => { c.ks.p.k.at(-1).s[0] = 1; }, /start and end at rest/],
+    ['duplicate side', (a) => { a.layers.push(structuredClone(carrySlot(a, 'composer-side'))); }, /needs exactly one composer-side null/],
+    ['transparent side', (a) => { carrySlot(a, 'composer-side').ks.o.k = 0; }, /opaque direct child/],
+    ['indirect side', (a) => { carrySlot(a, 'composer-side').parent = carrySlot(a, 'composer-decoration').ind; }, /opaque direct child/],
+    ['side outside rectangle', (a) => { carrySlot(a, 'composer-side').ks.p.k[0].s = [1.1, 0.5, 0]; }, /invalid keyframe/],
+    ['side vertical range', (a) => { carrySlot(a, 'composer-side').ks.p = { a: 0, k: [0, -0.1, 0] }; }, /within the composer bounds/],
+    ['empty side track', (a) => { carrySlot(a, 'composer-side').ks.p.k = []; }, /1\.\.64 keyframes/],
+    ['unordered side track', (a) => { const keys = carrySlot(a, 'composer-side').ks.p.k; keys[1].t = keys[0].t; }, /invalid keyframe/],
+    ['side later curve component', (a) => { const key = carrySlot(a, 'composer-side').ks.p.k[0]; key.o = { x: [0, 2], y: [0, 0] }; key.i = { x: 1, y: 1 }; }, /finite cubic curves/],
+  ]) it(`rejects ${name}`, () => {
+    const { status, output } = check(editCarry(edit), CARRY_PACK);
+    assert.equal(status, 1, output);
+    assert.match(output, message);
+  });
+
+  for (const [name, edit] of [
+    ['linear carry keys and zero spatial tangents', (_a, c) => {
+      c.ks.p.k.forEach((key) => { delete key.o; delete key.i; key.to = [0, 0, 0]; key.ti = [0, 0, 0]; });
+    }],
+    ['static side position at the lower corner', (a) => { carrySlot(a, 'composer-side').ks.p = { a: 0, k: [-1, 1, 0] }; }],
+    ['one side station', (a) => { carrySlot(a, 'composer-side').ks.p.k = [{ t: 12, s: [1, 0.5, 0], h: 1 }]; }],
+    ['no optional side', (a, c) => {
+      const side = carrySlot(a, 'composer-side');
+      a.layers.forEach((layer) => { if (layer.parent === side.ind) layer.parent = c.ind; });
+      a.layers = a.layers.filter((layer) => layer !== side);
+    }],
+  ]) it(`accepts ${name}`, () => {
+    const { status, output } = check(editCarry(edit), CARRY_PACK);
+    assert.equal(status, 0, output);
+  });
+
+  for (const [name, edit, message] of [
+    ['mirroring', (s) => { s.direction = 'mirror'; }, /it needs none/],
+    ['missing anchor capability', (s) => { s.requiredCapabilities = s.requiredCapabilities.filter((c) => c !== 'composer-anchor-v1'); }, /without requiring it/],
+    ['another adapter', (s) => { s.requiredCapabilities.push('interaction-cat-borrow-v1'); }, /more than one interaction adapter/],
+    ['bottom edge', (s) => { s.placement.edge = 'bottom'; }, /top-edge placement with poster fallback/],
+    ['synthetic fallback', (s) => { s.placement.fallback = 'stage-anchor'; }, /top-edge placement with poster fallback/],
+    ['variant bottom edge', (s) => { s.variants[1].placement.edge = 'bottom'; }, /variants\[1\] composer carry needs top-edge/],
+    ['variant synthetic fallback', (s) => { s.variants[1].placement.fallback = 'stage-anchor'; }, /variants\[1\] composer carry needs top-edge/],
+  ]) it(`rejects ${name} in the manifest`, () => {
+    const { status, output } = check((_root, manifest) => edit(carryScene(manifest)), CARRY_PACK);
+    assert.equal(status, 1, output);
+    assert.match(output, message);
+  });
 });

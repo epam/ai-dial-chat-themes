@@ -68,6 +68,7 @@ const CAPABILITIES = new Set([
   'interaction-composer-outline-v1',
   'interaction-cat-borrow-v1',
   'interaction-copy-track-v1',
+  'interaction-composer-carry-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
@@ -483,6 +484,111 @@ const checkComposerOutlineSlots = (animation, where) => {
     error(where, `has ${parcels.length} ${PARCEL_SLOT} layers; at most one is allowed`);
   else if (parcels.length === 1)
     checkSlot(parcels[0], 'rc', (shape) => isStatic(shape.p) && isStatic(shape.s), where);
+};
+
+/* ---------- interaction-composer-carry-v1 slots and travel ---------- */
+/* Mirrors Chat's composer-carry-adapter before the measured anchor is injected. */
+const COMPOSER_CARRY = 'interaction-composer-carry-v1';
+const CARRY_SLOT = 'composer-carry';
+const DECORATION_SLOT = 'composer-decoration';
+const SIDE_SLOT = 'composer-side';
+const MAX_CARRY_KEYS = 64;
+
+/* Carry slots use three-dimensional vectors even though all motion is 2D. */
+const isCarryStaticValue = (property, expected) => {
+  if (property == null) return true;
+  const values = Array.isArray(property.k) ? property.k : [property.k];
+  return property.a === 0 && expected.every((value, index) => values[index] === value);
+};
+
+const isCarryCurve = (curve) => {
+  if (!isRecord(curve)) return false;
+  const x = Array.isArray(curve.x) ? curve.x : [curve.x];
+  const y = Array.isArray(curve.y) ? curve.y : [curve.y];
+  return x.length > 0 && y.length > 0 &&
+    x.every((value) => Number.isFinite(value) && value >= 0 && value <= 1) &&
+    y.every(Number.isFinite);
+};
+
+const checkCarryPosition = (position, end, side, where) => {
+  const slot = side ? SIDE_SLOT : CARRY_SLOT;
+  const validValue = (value) => Array.isArray(value) && value.length === 3 &&
+    value.every(Number.isFinite) && value[2] === 0 &&
+    (side
+      ? value[0] >= -1 && value[0] <= 1 && value[1] >= 0 && value[1] <= 1
+      : value[0] >= 0 && value[0] <= 1000 && value[1] === 0);
+  if (side && position?.a === 0) {
+    if (!validValue(position.k)) error(where, `${slot} position must stay within the composer bounds`);
+    return;
+  }
+  const keys = position?.k;
+  if (position?.a !== 1 || !Array.isArray(keys) || keys.length < (side ? 1 : 2) || keys.length > MAX_CARRY_KEYS) {
+    error(where, `${slot} position needs ${side ? '1' : '2'}..${MAX_CARRY_KEYS} keyframes`);
+    return;
+  }
+  for (const [index, key] of keys.entries()) {
+    if (!isRecord(key) || !Number.isFinite(key.t) || key.t < 0 || key.t > end ||
+      (index > 0 && key.t <= keys[index - 1]?.t) || !validValue(key.s) ||
+      (key.h != null && key.h !== 0 && key.h !== 1) || 'e' in key ||
+      (key.to != null && JSON.stringify(key.to) !== '[0,0,0]') ||
+      (key.ti != null && JSON.stringify(key.ti) !== '[0,0,0]')) {
+      error(where, `${slot} position has an invalid keyframe`);
+      continue;
+    }
+    if ((key.o != null || key.i != null) && (!isCarryCurve(key.o) || !isCarryCurve(key.i)))
+      error(where, `${slot} easing must be finite cubic curves`);
+  }
+  if (!side && (keys[0]?.t !== 0 || keys[0]?.s?.[0] !== 0 || keys.at(-1)?.t !== end || keys.at(-1)?.s?.[0] !== 0))
+    error(where, `${slot} must start and end at rest at the composition bounds`);
+};
+
+const checkComposerCarry = (animation, where) => {
+  const duration = animation.op / animation.fr * 1000;
+  if (animation.ip !== 0 || !Number.isFinite(duration) || duration <= 0 || duration > 29750)
+    error(where, 'composer carry needs a timeline starting at zero and lasting at most 29750 ms');
+  const layers = animation.layers ?? [];
+  const requireSlot = (name, optional = false) => {
+    const matches = layers.filter(({ nm }) => nm === name);
+    if (optional && matches.length === 0) return undefined;
+    if (matches.length !== 1 || matches[0].ty !== 3) {
+      error(where, `needs exactly one ${name} null`);
+      return undefined;
+    }
+    const layer = matches[0];
+    if (!Number.isInteger(layer.ind) ||
+      !isCarryStaticValue(layer.ks?.a, [0, 0, 0]) ||
+      !isCarryStaticValue(layer.ks?.s, [100, 100, 100]) ||
+      !isCarryStaticValue(layer.ks?.r, [0]) ||
+      !isCarryStaticValue(layer.ks?.sk, [0]) ||
+      (layer.ao != null && layer.ao !== 0) ||
+      (layer.st != null && layer.st !== 0) ||
+      (layer.sr != null && layer.sr !== 1) || layer.tm != null)
+      error(where, `${name} must have an identity transform`);
+    return layer;
+  };
+  const carry = requireSlot(CARRY_SLOT);
+  const decoration = requireSlot(DECORATION_SLOT);
+  const side = requireSlot(SIDE_SLOT, true);
+  if (!carry || !decoration) return;
+  if (carry.parent != null || !isCarryStaticValue(carry.ks?.o, [100]))
+    error(where, `${CARRY_SLOT} must be an opaque unparented root`);
+  if (decoration.parent !== carry.ind || !isCarryStaticValue(decoration.ks?.p, [0, 0, 0]))
+    error(where, `${DECORATION_SLOT} must be a stationary direct child of the carrier`);
+  const byIndex = new Map(layers.map((layer) => [layer.ind, layer]));
+  if (byIndex.size !== layers.length) error(where, 'composer carry has duplicate layer indices');
+  for (const layer of layers) {
+    if (layer === carry) continue;
+    let current = layer;
+    for (let depth = 0; current && current !== carry && depth < layers.length; depth++)
+      current = byIndex.get(current.parent);
+    if (current !== carry) error(where, `layer "${layer.nm}" must descend from ${CARRY_SLOT}`);
+  }
+  checkCarryPosition(carry.ks?.p, animation.op, false, where);
+  if (side) {
+    if (side.parent !== carry.ind || !isCarryStaticValue(side.ks?.o, [100]))
+      error(where, `${SIDE_SLOT} must be an opaque direct child of the carrier`);
+    checkCarryPosition(side.ks?.p, animation.op, true, where);
+  }
 };
 
 /* ---------- interaction-cat-borrow-v1 slots and markers ---------- */
@@ -1478,6 +1584,13 @@ const checkManifest = (entry, file) => {
       error(where, `${path} requires ${COPY_TRACK} with direction ${scene.direction}; it needs none`);
     if ((scene.requiredCapabilities ?? []).filter((capability) => capability.startsWith('interaction-')).length > 1)
       error(where, `${path} requires more than one interaction adapter`);
+    const needsCarry = (scene.requiredCapabilities ?? []).includes(COMPOSER_CARRY);
+    if (needsCarry && !isAnchored)
+      error(where, `${path} requires ${COMPOSER_CARRY} without composer-anchor-v1 placement`);
+    if (needsCarry && scene.direction !== 'none')
+      error(where, `${path} requires ${COMPOSER_CARRY} with direction ${scene.direction}; it needs none`);
+    if (needsCarry && (scene.placement?.edge !== 'top' || scene.placement?.fallback !== 'poster'))
+      error(where, `${path} composer carry needs top-edge placement with poster fallback`);
     const hasTiming = checkTiming(scene, where, path);
     if (!['none', 'mirror', 'variant'].includes(scene.direction))
       error(where, `${path}.direction ${scene.direction} is invalid`);
@@ -1505,6 +1618,8 @@ const checkManifest = (entry, file) => {
           error(where, `${vpath}.placement.template differs from the scene's`);
         placement = variant.placement;
       }
+      if (needsCarry && (placement?.edge !== 'top' || placement?.fallback !== 'poster'))
+        error(where, `${vpath} composer carry needs top-edge placement with poster fallback`);
       for (const key of Object.keys(variant))
         if (!['when', 'animationAssetId', 'placement'].includes(key))
           error(where, `${vpath}.${key} is not allowed`);
@@ -1529,6 +1644,7 @@ const checkManifest = (entry, file) => {
           if (needsOutline && isAnchored) checkComposerOutlineSlots(animation, file);
           if (needsCatBorrow && isAnchored) checkCatBorrow(animation, file);
           if (needsCopyTrack && isAnchored) checkCopyTrack(animation, file);
+          if (needsCarry && isAnchored) checkComposerCarry(animation, file);
         }
         if (isAnchored && placement?.template === 'composer-anchor-v1')
           checkAnchorInsideStage(animation, placement, file);

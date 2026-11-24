@@ -27,6 +27,8 @@
   - [Customizing Banner Images (banners)](#customizing-banner-images-banners)
 - [Celebration Packs](#celebration-packs)
   - [Layout](#layout)
+  - [Composer-carry scenes](#composer-carry-scenes)
+  - [Check](#check)
   - [Publish a Pack Version](#publish-a-pack-version)
   - [Caching](#caching)
   - [Retention](#retention)
@@ -283,6 +285,12 @@ static/celebrations/
 │       ├── manifest.json
 │       ├── cat.<sha256 prefix>.json   # one composition for every layout and story
 │       └── cat.poster.<sha256 prefix>.svg
+├── new-year-polar-bears/
+│   └── 1.0.0/                         # optional event; does not replace new-year
+│       ├── manifest.json
+│       ├── polar-bears.desktop.<sha256 prefix>.json
+│       ├── polar-bears.mobile.<sha256 prefix>.json
+│       └── polar-bears.poster.<sha256 prefix>.svg
 └── company-anniversary/
     └── 1.0.0/
         ├── manifest.json
@@ -368,6 +376,89 @@ Composition markers starting with `ct:` time the story, in actor frames: `ct:sec
 
 Every keyframe but the last of each property needs a hold or an easing: the player can throw while interpolating from a bare key (it did for a copy track's splice-edge keys), and Chat may remap the actor into any frame. The check also proves what the asset owes the player: at every splice edge each track visible there keeps its world pose (track plus that section's travel), and each track a section shows closes every cycle that section plays, with a keyframe at both edges, both within 0.25 units.
 
+### Composer-carry scenes
+
+The optional `new-year-polar-bears` event plays `polar-bears-workshop`: two bears
+tie a rope to the composer, try a small joint tug, pause, then pull its inert
+copy away with a gradually accelerating second tug. They return the decorated
+copy, untie the rope, and leave the lights visible briefly before restoring the
+page. Desktop artwork attaches beside the composer; mobile artwork attaches
+below its lower corners. The authored Lottie JSON and SVG are the source; no
+generator or Chat fixture is needed to publish them.
+
+`interaction-composer-carry-v1` requires `composer-anchor-v1` placement,
+`edge: "top"`, `fallback: "poster"`, `direction: "none"`, and no other
+`interaction-*` capability. Require the adapter on the scene only. The composition
+starts at frame zero and lasts at most 29,750 ms. Chat maps these named null layers:
+
+- `composer-carry`: exactly one unparented, opaque null with an identity transform.
+  Its position has 2–64 strictly ordered keyframes `[x, 0, 0]`, with `x` in
+  0–1000. The first key is `[0, 0, 0]` at frame zero and the last is the same at
+  `op`. Chat maps 1000 to an exit beyond the viewport and applies the same timing
+  and easing to the inert composer copy.
+- `composer-decoration`: exactly one direct child of the carrier, with an identity
+  transform and static position `[0, 0, 0]`. Draw its ornament across a 520-unit
+  reference width; Chat fits that width to the measured composer. Its opacity may
+  animate.
+- `composer-side` (optional): at most one opaque null, with an identity transform,
+  directly under the carrier. Its position is static or has 1–64 ordered keys
+  `[x, y, 0]`, where `x` in −1–1 spans the measured left/right edges and `y` in
+  0–1 spans its top/bottom. Put side actors and their contact rope beneath it.
+
+All top-level artwork must descend from the carrier, with unique layer indices
+and no missing or cyclic parents. Travel and side keys contain finite start
+values, no end values, no spatial tangents except `[0, 0, 0]`, and only hold 0/1.
+Paired temporal curves have finite values and x components in 0–1; missing
+curves mean linear interpolation. Do not add time remapping, stretch, auto
+orientation, rotation or skew to the slots.
+
+For a side composition, keep its full visible artwork below its attachment within
+`composition.h - anchorRect.y`. Chat checks room below the lowest authored side
+attachment using that extent and a 20 px viewport margin. A bottom-docked mobile
+composer without that room shows the poster. The adapter also requires an enabled
+textarea, no expanded composer menu, an untransformed composer and ancestors,
+and at most 300 nodes in its snapshot. Missing or ineligible composers, reduced
+motion and failures before playback starts use the poster. Failures after playback
+starts remove the scene. Input cancels the scene and restores the untouched draft,
+focus and selection.
+
+#### Enable the polar bears event
+
+`new-year-polar-bears@1.0.0` is an independent event with its own static trigger
+and English labels. This publication adds only `defaults.new-year-polar-bears`;
+`defaults.new-year`, all existing packs and their scene pools remain unchanged.
+It does not automatically add the bears to the ordinary New Year click pool.
+
+Deploy a Chat release that supports `interaction-composer-carry-v1` before
+enabling the event. On the Chat API deployment, retain the correct
+`THEMES_CONFIG_URL` for this Themes release and set:
+
+```dotenv
+UI_EVENT=new-year-polar-bears
+UI_EVENT_DELIVERY_MODE=prefer-external
+UI_EVENT_EXTERNAL_EVENTS=new-year-polar-bears
+UI_EVENT_DELIVERY_REVISION=polar-bears-1-0-0
+```
+
+Append the event to any existing `UI_EVENT_EXTERNAL_EVENTS` allowlist; no
+`UI_EVENT_EXTERNAL_SCENES` entry is needed for an external-only event. After the
+deployment configuration takes effect, reload Chat. The start-page button
+"Play polar bears workshop" plays the single scene. Clients without the adapter
+cannot activate this event; there is no compiled bears fallback. Disable it by
+restoring the previous `UI_EVENT` and delivery policy, then reload open clients.
+The mutable index cache does not by itself refresh an already resolved event in
+an open tab.
+
+The 28-second assets have 7 layers each. Desktop is 255,420 B with 1,585
+keyframes and 1,957 authored vertices; mobile is 241,991 B with 1,409 keyframes
+and 1,965 vertices. The poster is 3,246 B. Native browser review measured 353 SVG
+nodes, within the scene's 800-node hard budget; the 320-node and 200 KiB targets
+were exceeded to retain separate foot/contact poses and the flexible wire and
+small bulbs. Review covered actual light/dark palettes at 360 and 1280 px,
+LTR/RTL, readable faces and composer text, poster fallback, cancellation, and
+natural-speed completion. These are correctness checks in a local development
+environment, not deployment performance benchmarks.
+
 ### Check
 
 Run the check before every pull request; CI runs it too:
@@ -377,7 +468,7 @@ node scripts/check-celebration-packs.mjs
 node --test scripts/check-celebration-packs.test.mjs
 ```
 
-The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, and the copy-track slot, marker, reference, override, pose and layer-cap rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
+The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, the copy-track slot, marker, reference, override, pose and layer-cap rules, and composer-carry hierarchy, travel, side-slot and placement rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
 
 ### Publish a Pack Version
 

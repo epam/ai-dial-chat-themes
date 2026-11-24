@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "packId": "new-year-polar-bears",
+  "version": "1.0.0",
+  "eventId": "new-year-polar-bears",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "static-poster-v1",
+    "static-trigger-v1"
+  ],
+  "assets": [
+    {
+      "assetId": "new-year-polar-bears-desktop-2dcdcf837b4415ea",
+      "file": "polar-bears.desktop.2dcdcf837b4415ea.json",
+      "mediaType": "application/json",
+      "bytes": 255420,
+      "sha256": "2dcdcf837b4415eaecb7a203cc80260d23dd0536a64278223ebee73cdc3c171c"
+    },
+    {
+      "assetId": "new-year-polar-bears-mobile-78f96dd7945d768f",
+      "file": "polar-bears.mobile.78f96dd7945d768f.json",
+      "mediaType": "application/json",
+      "bytes": 241991,
+      "sha256": "78f96dd7945d768f8ca954dd97597b9610525d2fd3292e47f9126a74a4db8754"
+    },
+    {
+      "assetId": "new-year-polar-bears-poster-dff2f7e66fbac2bd",
+      "file": "polar-bears.poster.dff2f7e66fbac2bd.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 3246,
+      "sha256": "dff2f7e66fbac2bd200af4ce78d70b976c02e65e306a956d23281167ac2a5492"
+    }
+  ],
+  "labels": {
+    "en": {
+      "polarBearsWorkshopToastMessage": "Two polar bears bring the holiday lights.",
+      "polarBearsWorkshopTitle": "Polar bears workshop",
+      "polarBearsWorkshopTrigger": "Play polar bears workshop"
+    }
+  },
+  "scenes": [
+    {
+      "id": "polar-bears-workshop",
+      "labelId": "polarBearsWorkshopToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-composer-carry-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 340,
+          "y": 240,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.7,
+          "max": 1
+        },
+        "fallback": "poster"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 28000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 30500
+      },
+      "posterAssetId": "new-year-polar-bears-poster-dff2f7e66fbac2bd",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-polar-bears-desktop-2dcdcf837b4415ea"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-polar-bears-mobile-78f96dd7945d768f",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 210,
+              "y": 220,
+              "width": 300,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.85,
+              "max": 1
+            },
+            "fallback": "poster"
+          }
+        }
+      ]
+    }
+  ],
+  "event": {
+    "titleLabelId": "polarBearsWorkshopTitle",
+    "clickSceneIds": [
+      "polar-bears-workshop"
+    ],
+    "decoration": {
+      "template": "static-trigger-v1",
+      "posterAssetId": "new-year-polar-bears-poster-dff2f7e66fbac2bd",
+      "labelId": "polarBearsWorkshopTrigger"
+    }
+  }
+}
