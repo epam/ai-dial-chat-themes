@@ -23,7 +23,7 @@ Chat shows only the festive notification.
 | `santa-history-delivery.desktop.lottie.json` | Accepted 12-second desktop descent/catch study |
 | `santa-history-delivery.mobile.lottie.json` | Accepted 12-second mobile descent/catch study |
 | `santa-history-delivery.poster.svg` | Static rope-and-sack fallback |
-| `scene.json` | Unpublished descriptor, English label and stable source asset IDs |
+| `scene.json` | Publication descriptor source, English label and stable source asset IDs |
 | `source-inventory.json` | Source byte counts, SHA-256 values and dimensions |
 | `desktop-compact-report.json` | 85% desktop spatial adjustment and preserved timing/topology |
 
@@ -75,10 +75,18 @@ revised animation (the change retained its original name after the chimney story
 was replaced). This directory and validator support do not imply
 that a released Chat supports the capability.
 
-Publication into the ordinary New Year pack remains a separate release step:
-complete the pack-retention prerequisite and runtime acceptance, then prepare a
-new immutable version containing the existing scenes plus Santa. Existing
-published versions and defaults remain unchanged. The local Chat preview uses
-an ignored catalog overlay. The compiled New Year event routes an admitted
-`santa-history-delivery` to the existing `happy new year` secret pool; a gift click
-never selects Santa. The existing click and secret scenes remain available.
+The complete variants and poster are published, byte for byte, in
+[`new-year-default@1.3.0`](../../static/celebrations/new-year-default/1.3.0/manifest.json),
+alongside the unchanged scenes from `1.2.0`. The 12-second studies remain source
+assets only. The catalog selects `1.3.0` for the ordinary `new-year` event and
+retains `1.2.0` for rollback. Retirement of `1.1.0` is a separate prerequisite
+change governed by the repository's retention policy.
+
+Use a Chat build containing
+[PR #9983](https://github.com/epam/ai-dial-chat/pull/9983) and enable Santa through
+the deployment's scene allowlist; see
+[activation and rollback](../../README.md#santa-history-delivery).
+The compiled New Year event routes an admitted `santa-history-delivery` to the
+existing `happy new year` secret pool; a gift click never selects Santa. The
+existing click and secret scenes remain available. The history capability stays
+scene-level, so clients without it omit Santa without dropping the whole pack.

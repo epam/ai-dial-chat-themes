@@ -27,6 +27,8 @@
   - [Customizing Banner Images (banners)](#customizing-banner-images-banners)
 - [Celebration Packs](#celebration-packs)
   - [Layout](#layout)
+  - [Santa History Delivery](#santa-history-delivery)
+  - [Scene authoring](#scene-authoring)
   - [Composer-carry scenes](#composer-carry-scenes)
   - [Check](#check)
   - [Publish a Pack Version](#publish-a-pack-version)
@@ -267,8 +269,9 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   ├── 1.1.1/                         # previous version, kept for rollback
-│   └── 1.2.0/
+│   ├── 1.1.1/                         # retained immutable version
+│   ├── 1.2.0/                         # previous version, kept for rollback
+│   └── 1.3.0/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
@@ -278,7 +281,10 @@ static/celebrations/
 │       ├── gift-wrapping.poster.<sha256 prefix>.svg
 │       ├── snowman-delivery.desktop.<sha256 prefix>.json   # copy-track scene, one variant per layout
 │       ├── snowman-delivery.mobile.<sha256 prefix>.json
-│       └── snowman-delivery.poster.<sha256 prefix>.svg
+│       ├── snowman-delivery.poster.<sha256 prefix>.svg
+│       ├── santa-history-delivery.desktop.<sha256 prefix>.json
+│       ├── santa-history-delivery.mobile.<sha256 prefix>.json
+│       └── santa-history-delivery.poster.<sha256 prefix>.svg
 ├── halloween-default/
 │   └── 1.0.0/
 │       ├── manifest.json
@@ -311,26 +317,68 @@ Both static posters match the updated art. The stories, durations, composer
 contacts and required capabilities are unchanged. The JSON and SVG files are
 the authored source; publication does not generate them from Chat components.
 
-### Unpublished scene authoring
+### Santa History Delivery
+
+New Year `1.3.0` adds the 27-second `santa-history-delivery` scene to the ordinary
+`new-year` event. The three existing scenes, their labels and their assets are
+preserved from `1.2.0`. Santa descends along conversation history, delivers gifts
+and leaves in a reindeer sleigh; collapsed or unavailable history uses a rope
+from above the viewport. Constrained layouts and reduced motion use the static
+poster. The native artwork is the accepted source from
+[Themes PR #190](https://github.com/epam/ai-dial-chat-themes/pull/190).
+
+Use a Chat build containing
+[Chat PR #9983](https://github.com/epam/ai-dial-chat/pull/9983). The new
+`interaction-history-ladder-v1` requirement belongs to Santa's scene, not the
+whole pack: clients without it omit Santa and keep supported scenes.
+Compatible Chat routes Santa only into the existing `happy new year` secret
+pool; a gift click never selects it. The phrase still chooses among the
+existing secret scenes, so it does not select Santa on every submission.
+
+To enable it through Config Studio (Chat schema `1.1.0` or later), activate all
+four `ui.celebrationDelivery.*` keys together in `MANAGED_CONFIG_ACTIVE_KEYS`,
+preserving its existing entries. Publish `ui.activeEventId: "new-year"` and:
+
+```json
+{
+  "ui.celebrationDelivery.mode": "prefer-external",
+  "ui.celebrationDelivery.revision": "santa-1",
+  "ui.celebrationDelivery.externalScenes": ["new-year/santa-history-delivery"],
+  "ui.celebrationDelivery.externalEvents": []
+}
+```
+
+Append Santa to any existing scene allowlist and preserve any external event
+IDs already in use. Explicit `UI_EVENT_*` environment values take precedence
+over Studio. For an environment-only deployment, set `UI_EVENT=new-year`,
+`UI_EVENT_DELIVERY_MODE=prefer-external`, append
+`new-year/santa-history-delivery` to `UI_EVENT_EXTERNAL_SCENES`, and change
+`UI_EVENT_DELIVERY_REVISION`. Keep `THEMES_CONFIG_URL` pointing at this service.
+Publishing the pack does not enable it for deployments using bundled scenes.
+
+For a Santa-only rollback, remove its allowlist entry. To roll back the whole
+pack, point `defaults.new-year` at retained `new-year-default@1.2.0` and bump
+the catalog revision. Existing immutable assets are never edited.
+
+### Scene authoring
 
 The maintained [Santa History Delivery source](./authoring/santa-history-delivery/README.md)
 contains native desktop/mobile Lottie variants, a static poster, a scene descriptor
-and the accepted descent studies. Validate the complete scene without publishing it:
+and the accepted descent studies. Validate the complete source independently of
+the published catalog:
 
 ```sh
 node authoring/santa-history-delivery/check.mjs
 ```
 
-This stages a temporary catalog and runs the same publication checker. The scene
-requires the in-development `interaction-history-ladder-v1` Chat capability;
-source validation does not establish released-client support. Published pack
-versions and defaults are unchanged. See the authoring README for integration
-and retention prerequisites. Santa is reserved for the existing `happy new year`
-secret phrase; the ordinary gift-click pool remains unchanged.
+This stages a temporary catalog and runs the same publication checker without
+changing published assets or defaults. The complete variants and poster are
+published in `new-year-default@1.3.0`; the shorter studies remain authoring-only.
+See the authoring README for source identities and validation.
 
 The history validator also checks optional start-edge support, viewport flight
 references and bounds, and the constrained line slot used to reach the window top.
-These additions remain part of the unpublished capability described by the source.
+These additions are part of `interaction-history-ladder-v1`.
 
 ### Composer-anchored scenes
 
