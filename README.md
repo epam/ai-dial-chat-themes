@@ -28,6 +28,7 @@
 - [Celebration Packs](#celebration-packs)
   - [Layout](#layout)
   - [Santa History Delivery](#santa-history-delivery)
+  - [Polar bears on the New Year gift trigger](#polar-bears-on-the-new-year-gift-trigger)
   - [Scene authoring](#scene-authoring)
   - [Composer-carry scenes](#composer-carry-scenes)
   - [Check](#check)
@@ -269,8 +270,9 @@ Packs live under [static/celebrations](./static/celebrations) and never in `conf
 static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
-│   ├── 1.2.0/                         # previous version, kept for rollback
-│   └── 1.3.0/
+│   ├── 1.2.0/                         # retained immutable version
+│   ├── 1.3.0/                         # previous version, kept for rollback
+│   └── 1.4.0/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
@@ -283,7 +285,10 @@ static/celebrations/
 │       ├── snowman-delivery.poster.<sha256 prefix>.svg
 │       ├── santa-history-delivery.desktop.<sha256 prefix>.json
 │       ├── santa-history-delivery.mobile.<sha256 prefix>.json
-│       └── santa-history-delivery.poster.<sha256 prefix>.svg
+│       ├── santa-history-delivery.poster.<sha256 prefix>.svg
+│       ├── polar-bears.desktop.<sha256 prefix>.json
+│       ├── polar-bears.mobile.<sha256 prefix>.json
+│       └── polar-bears.poster.<sha256 prefix>.svg
 ├── halloween-default/
 │   └── 1.0.0/
 │       ├── manifest.json
@@ -356,8 +361,46 @@ over Studio. For an environment-only deployment, set `UI_EVENT=new-year`,
 Publishing the pack does not enable it for deployments using bundled scenes.
 
 For a Santa-only rollback, remove its allowlist entry. To roll back the whole
-pack, point `defaults.new-year` at retained `new-year-default@1.2.0` and bump
-the catalog revision. Existing immutable assets are never edited.
+pack, point `defaults.new-year` at the retained previous version and bump the
+catalog revision. Existing immutable assets are never edited.
+
+### Polar bears on the New Year gift trigger
+
+New Year `1.4.0` adds `polar-bears-workshop` to the ordinary `new-year` pack,
+preserving all four scenes from `1.3.0`, including Santa. The three bear assets
+are byte-identical to `new-year-polar-bears@1.0.0`; only their pack asset IDs
+change. Their 28-second story, desktop/mobile placement and static poster are
+unchanged. The existing separate bears event remains available.
+
+Keep `ui.activeEventId` set to `new-year`. With the four delivery keys activated
+for Config Studio as described above, publish:
+
+```json
+{
+  "ui.celebrationDelivery.mode": "prefer-external",
+  "ui.celebrationDelivery.revision": "new-year-1-4-0",
+  "ui.celebrationDelivery.externalScenes": [
+    "new-year/santa-history-delivery",
+    "new-year/polar-bears-workshop"
+  ],
+  "ui.celebrationDelivery.externalEvents": []
+}
+```
+
+Preserve any other allowlisted scenes and external events. An environment-only
+deployment can instead append `new-year/polar-bears-workshop` to
+`UI_EVENT_EXTERNAL_SCENES` with `UI_EVENT=new-year` and
+`UI_EVENT_DELIVERY_MODE=prefer-external`, then change its delivery revision.
+The existing gift button randomly selects the bears alongside other eligible
+click scenes. The bears never join the `happy new year` pool; Santa remains
+reserved for that phrase.
+
+Use a Chat build with `interaction-composer-carry-v1` (introduced in
+[Chat PR #9973](https://github.com/epam/ai-dial-chat/pull/9973)). The capability
+is required only by the bear scene, so clients without it keep the other
+supported scenes. Removing the bears' allowlist entry disables only that scene.
+For a whole-pack rollback, select retained `new-year-default@1.3.0` and bump
+the catalog revision; the separate bears event is unaffected.
 
 ### Scene authoring
 
@@ -491,10 +534,11 @@ focus and selection.
 
 #### Enable the polar bears event
 
-`new-year-polar-bears@1.0.0` is an independent event with its own static trigger
-and English labels. This publication adds only `defaults.new-year-polar-bears`;
-`defaults.new-year`, all existing packs and their scene pools remain unchanged.
-It does not automatically add the bears to the ordinary New Year click pool.
+`new-year-polar-bears@1.0.0` remains an independent event with its own static
+trigger and English labels. Selecting it switches the active event to the
+bears-only experience. To keep the ordinary New Year gift trigger and the other
+scenes, use [the ordinary pack integration](#polar-bears-on-the-new-year-gift-trigger)
+instead. The separate event's default and immutable assets are unchanged.
 
 Deploy a Chat release that supports `interaction-composer-carry-v1` before
 enabling the event. On the Chat API deployment, retain the correct

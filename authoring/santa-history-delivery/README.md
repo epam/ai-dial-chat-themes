@@ -78,9 +78,9 @@ that a released Chat supports the capability.
 The complete variants and poster are published, byte for byte, in
 [`new-year-default@1.3.0`](../../static/celebrations/new-year-default/1.3.0/manifest.json),
 alongside the unchanged scenes from `1.2.0`. The 12-second studies remain source
-assets only. The catalog selects `1.3.0` for the ordinary `new-year` event and
-retains `1.2.0` for rollback. Retirement of `1.1.0` is a separate prerequisite
-change governed by the repository's retention policy.
+assets only. Later ordinary New Year pack versions preserve this scene, and the
+catalog retains the previous default for rollback. Retiring older versions is
+a separate change governed by the repository's retention policy.
 
 Use a Chat build containing
 [PR #9983](https://github.com/epam/ai-dial-chat/pull/9983) and enable Santa through
