@@ -1,0 +1,61 @@
+{
+  "factor": 0.85,
+  "original": {
+    "file": "santa-history-delivery.full.desktop.5df5e1dfb16f9844.json",
+    "bytes": 294395,
+    "sha256": "5df5e1dfb16f98447e335bd27a34cd6d10a4db302b3e59dcca39a7d6478c7fdb",
+    "dimensions": [
+      600,
+      520
+    ]
+  },
+  "compact": {
+    "assetId": "santa-history-full-desktop",
+    "file": "santa-history-delivery.full.desktop.200aae163ae90dbe.json",
+    "bytes": 296854,
+    "sha256": "200aae163ae90dbef60fadb9a6c2050957323e18f3b4289df545508bef4ca22b",
+    "dimensions": [
+      510,
+      442
+    ]
+  },
+  "preserved": [
+    "27-second timing and all key times/easing",
+    "rotation/transform scale/color/opacity",
+    "all layer/shape counts and path topology",
+    "all markers",
+    "hl-range host drift 24px and gap 80px",
+    "mobile/poster/representative assets"
+  ],
+  "spatialPropertiesScaled": 689,
+  "numericChanges": 7626,
+  "verification": {
+    "strictHistoryLadderParser": "pass",
+    "positiveStageDimensions": "pass",
+    "sourceUnchangedByParsing": true,
+    "maxDrift": 24,
+    "maxGap": 80,
+    "invariance": {
+      "timingAndEasingRecordsUnchanged": 1430,
+      "layersUnchanged": 36,
+      "vertices": 1220,
+      "keys": 1430,
+      "transformScalesRotationsColorsOpacitiesUnchanged": true,
+      "markersAndTopologyUnchanged": true,
+      "otherAssetsUnchanged": {
+        "santa-history-delivery.full.mobile.ef77db421024a80d.json": "ef77db421024a80d49f33ce12c19ab13a9ded837b808132d533059e08b35736e",
+        "santa-history-delivery.poster.ca18212a6558ff9e.svg": "ca18212a6558ff9ec0ad96fdbe801dc76ed92fca0fbd769706850d1259d51461",
+        "santa-history-delivery.desktop.670117eef6333d41.json": "670117eef6333d4176e9caba773ac9dfecf58a641f4d36722c52633cb7fc02a1",
+        "santa-history-delivery.mobile.8321c46e3e3500b1.json": "8321c46e3e3500b12547a0c5a74799f260d28b0b101dc1df69c9ecbc0dc509f8"
+      }
+    },
+    "actualSizeRenderedTimesSeconds": [
+      4.2,
+      13.9,
+      22,
+      25
+    ],
+    "svgNodes": 380,
+    "maximumRenderedBoundsScaleErrorPx": 7.934570311363132e-05
+  }
+}

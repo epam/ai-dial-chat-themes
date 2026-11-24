@@ -1,0 +1,34 @@
+{
+  "santa-history-delivery.desktop.lottie.json": {
+    "bytes": 118353,
+    "sha256": "0f2b71021b89f6417aa98e6710ced97c9af0824ce0186ddaf364ad75a9ae099e",
+    "width": 600,
+    "height": 520,
+    "durationSeconds": 12
+  },
+  "santa-history-delivery.full.desktop.lottie.json": {
+    "bytes": 280513,
+    "sha256": "0166262c3d3c46ae2c11fcc387169bcb3e77d8031a45303099f4643f29170879",
+    "width": 510,
+    "height": 442,
+    "durationSeconds": 27
+  },
+  "santa-history-delivery.full.mobile.lottie.json": {
+    "bytes": 274037,
+    "sha256": "e44dde821ea6b9722ed1aa0b911de524a598418c6dc1f9e00a410be1750f3ef4",
+    "width": 360,
+    "height": 440,
+    "durationSeconds": 27
+  },
+  "santa-history-delivery.mobile.lottie.json": {
+    "bytes": 118560,
+    "sha256": "45241e4de535e5a0ec56891d9b28b07d48ef96bcedd2f4176e874a83d9992b07",
+    "width": 360,
+    "height": 440,
+    "durationSeconds": 12
+  },
+  "santa-history-delivery.poster.svg": {
+    "bytes": 18530,
+    "sha256": "dbf68dbaca2e2cacddc5962eb022228afd7e39eca13d3d6ce75a620184ef3a71"
+  }
+}
