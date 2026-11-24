@@ -69,6 +69,7 @@ const CAPABILITIES = new Set([
   'interaction-cat-borrow-v1',
   'interaction-copy-track-v1',
   'interaction-composer-carry-v1',
+  'interaction-history-ladder-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
@@ -1412,6 +1413,282 @@ const checkCopyTrack = (animation, where) => {
 };
 
 
+/* ---------- interaction-history-ladder-v1 ---------- */
+/* Mirrors Chat's history-ladder-contract and lottie-markers. The metadata is
+   private host input, not artwork: reject transforms, painting and ownership
+   that would make the measured placement differ from native playback. */
+const HISTORY_LADDER = 'interaction-history-ladder-v1';
+const checkHistoryLadder = (animation, where) => {
+  const fail = (message) => { throw new TypeError(message); };
+  const rows = new Set(Array.from({ length: 6 }, (_, index) => `row-${index}`));
+  const only = (value, names) => isRecord(value) && Object.keys(value).every((key) => names.includes(key));
+  const staticValue = (property) => {
+    if (!only(property, ['a', 'k']) || property.a !== 0) fail('metadata must be static');
+    return property.k;
+  };
+  const vector = (property, length) => {
+    const value = staticValue(property);
+    if (!Array.isArray(value) || value.length !== length || !value.every(isFiniteNumber))
+      fail('invalid static vector');
+    return value;
+  };
+  const identity = (layer, allowPosition = false, opacity = 100) => {
+    const transform = layer.ks ?? {};
+    if (!only(transform, ['p', 'a', 's', 'r', 'o'])) fail(`unsupported transform on ${layer.nm}`);
+    for (const [key, expected] of [
+      ['a', [0, 0, 0]], ['s', [100, 100, 100]],
+      ...(!allowPosition ? [['p', [0, 0, 0]]] : []),
+    ])
+      if (transform[key] !== undefined && vector(transform[key], 3).some((value, index) => value !== expected[index]))
+        fail(`nonidentity ${key} on ${layer.nm}`);
+    if (transform.r !== undefined && staticValue(transform.r) !== 0) fail(`rotation on ${layer.nm}`);
+    if (transform.o !== undefined && staticValue(transform.o) !== opacity) fail(`opacity on ${layer.nm}`);
+  };
+  const metadata = (layer) => {
+    if (!only(layer, ['ty', 'ind', 'nm', 'ks', 'shapes', 'ip', 'op', 'st', 'sr', 'ao', 'ddd', 'hd']) ||
+        (layer.st !== undefined && layer.st !== 0) ||
+        (layer.sr !== undefined && layer.sr !== 1) ||
+        (layer.ddd !== undefined && layer.ddd !== 0) ||
+        (layer.ao !== undefined && layer.ao !== 0) ||
+        (layer.hd !== undefined && typeof layer.hd !== 'boolean'))
+      fail(`unsupported metadata on ${layer.nm}`);
+  };
+  const rectangle = (layer) => {
+    metadata(layer);
+    identity(layer, false, 0);
+    if (layer.ty !== 4 || layer.ks?.o === undefined || !Array.isArray(layer.shapes) || layer.shapes.length !== 1)
+      fail(`expected an invisible rectangle on ${layer.nm}`);
+    const shape = layer.shapes[0];
+    if (!only(shape, ['ty', 'nm', 'p', 's', 'r', 'd', 'hd']) || shape.ty !== 'rc' ||
+        (shape.d !== undefined && shape.d !== 1 && shape.d !== 3) ||
+        (shape.hd !== undefined && typeof shape.hd !== 'boolean') ||
+        (shape.r !== undefined && staticValue(shape.r) !== 0))
+      fail(`painted or transformed rectangle on ${layer.nm}`);
+    const position = vector(shape.p, 2);
+    const size = vector(shape.s, 2);
+    if (size.some((value) => value <= 0 || value > 4096)) fail(`unbounded rectangle on ${layer.nm}`);
+    return { position, size };
+  };
+  const easing = (key, last) => {
+    if (Boolean(key.i) !== Boolean(key.o)) fail('easing handles must be paired');
+    if (!last && key.h !== 1 && (!key.i || !key.o)) fail('nonhold keys require explicit easing');
+    for (const handle of [key.o, key.i]) {
+      if (!handle) continue;
+      for (const control of [handle.x, handle.y]) {
+        const values = Array.isArray(control) ? control : [control];
+        if (!values.length || values.some((value) => !isFiniteNumber(value) || value < 0 || value > 1 || value !== values[0]))
+          fail('unsupported easing');
+      }
+    }
+  };
+  const positionKeys = (layer, end) => {
+    metadata(layer);
+    const position = layer.ks?.p;
+    if (layer.ty !== 3 || layer.shapes !== undefined ||
+        !only(position, ['a', 'k']) || position.a !== 1 ||
+        !Array.isArray(position.k) || position.k.length < 2 || position.k.length > 512)
+      fail(`expected an unparented keyed track ${layer.nm}`);
+    position.k.forEach((key, index, keys) => {
+      if (!isRecord(key) || !isFiniteNumber(key.t) || key.t < 0 || key.t > end ||
+          (index > 0 && key.t <= keys[index - 1].t) || !Array.isArray(key.s) ||
+          key.s.length < 2 || key.s.length > 3 || !key.s.every(isFiniteNumber) ||
+          'e' in key || (key.h !== undefined && key.h !== 1))
+        fail(`invalid position key on ${layer.nm}`);
+      if ([key.to, key.ti].some((tangent) => tangent !== undefined &&
+          (!Array.isArray(tangent) || tangent.some((value) => value !== 0))))
+        fail(`spatial tangents on ${layer.nm}`);
+      easing(key, index === keys.length - 1);
+    });
+    if (position.k[0].t !== 0 || position.k.at(-1).t !== end) fail(`track ${layer.nm} must cover the timeline`);
+    return position.k;
+  };
+  const scalar = (layer, name, positions) => {
+    const property = layer.ks?.[name];
+    if (property === undefined) return;
+    if (!only(property, ['a', 'k'])) fail(`unsupported ${name} property`);
+    const valid = (value) => isFiniteNumber(value) && (name === 'o' ? value >= 0 && value <= 100 : Math.abs(value) <= 360);
+    if (property.a === 0) {
+      if (!valid(property.k)) fail(`invalid ${name} on ${layer.nm}`);
+      return;
+    }
+    if (property.a !== 1 || !Array.isArray(property.k) || property.k.length !== positions.length)
+      fail(`invalid ${name} keys on ${layer.nm}`);
+    property.k.forEach((key, index) => {
+      if (!isRecord(key) || key.t !== positions[index].t || !Array.isArray(key.s) ||
+          key.s.length !== 1 || !valid(key.s[0]) || 'e' in key || (key.h !== undefined && key.h !== 1))
+        fail(`invalid ${name} key on ${layer.nm}`);
+      easing(key, index === positions.length - 1);
+      if (easingOf(key) !== easingOf(positions[index])) fail('copy tracks must share key times and easing');
+    });
+  };
+  try {
+    if (!isRecord(animation) || ![animation.w, animation.h, animation.fr, animation.op].every((value) => isFiniteNumber(value) && value > 0) ||
+        animation.fr > 120 || animation.ip !== 0 || animation.tm !== undefined ||
+        !Array.isArray(animation.layers) || animation.layers.length > 48 || !animation.layers.every(isRecord))
+      fail('invalid composition');
+    const { layers, op: end } = animation;
+    const one = (name) => {
+      const matches = layers.filter(({ nm }) => nm === name);
+      if (matches.length !== 1) fail(`expected one ${name}`);
+      return matches[0];
+    };
+    const hasFlight = layers.some(({ nm }) => nm === 'hl-track:flight');
+    const trackKinds = ['actor', 'copy', ...(hasFlight ? ['flight'] : [])];
+    const viewportAnchors = hasFlight ? ['viewport-start', 'viewport-end'] : [];
+    const referenceNames = new Set([...rows, ...viewportAnchors]);
+    const references = new Map();
+    for (const row of referenceNames) {
+      const layer = one(`hl-anchor:${row}`);
+      metadata(layer);
+      identity(layer, true);
+      if (layer.ty !== 3 || layer.shapes !== undefined) fail(`invalid reference ${row}`);
+      const point = vector(layer.ks?.p, 3);
+      if (rows.has(row) && references.size && point[1] <= [...references.values()].at(-1)[1]) fail('references are not ordered');
+      references.set(row, point);
+      if (rows.has(row)) rectangle(one(`hl-bounds:${row}`));
+    }
+    if (hasFlight) rectangle(one('hl-flight-bounds'));
+    else if (layers.some(({ nm }) => nm === 'hl-flight-bounds')) fail('flight bounds without flight');
+    const lines = layers.filter(({ nm }) => nm?.startsWith('hl-if:drawn:top-line:'));
+    if (lines.length) {
+      const line = lines[0];
+      const path = line.shapes?.[0];
+      const value = path?.ks?.k;
+      const strokes = line.shapes?.slice(1) ?? [];
+      const transform = line.ks;
+      const equal = (name, expected) => transform?.[name]?.a === 0 && JSON.stringify(transform[name]?.k) === JSON.stringify(expected);
+      if (lines.length !== 1 || line.nm !== 'hl-if:drawn:top-line:row-0' || line.ty !== 4 ||
+          line.parent !== layers.find(({ nm }) => nm === 'hl-follow:row-0')?.ind || line.parent === undefined ||
+          !equal('p', [0, 0, 0]) || !equal('a', [0, 0, 0]) || !equal('s', [100, 100, 100]) ||
+          transform?.r?.a !== 0 || transform.r.k !== 0 ||
+          Object.keys(transform).some((name) => !['p', 'a', 's', 'r', 'o'].includes(name)) ||
+          line.ef !== undefined || line.masksProperties !== undefined || line.ao === 1 ||
+          path?.ty !== 'sh' || path.ks?.a !== 0 || !value || value.c !== false ||
+          !Array.isArray(value.v) || value.v.length !== 2 ||
+          value.v.some((v) => !Array.isArray(v) || v.length !== 2 || !v.every(isFiniteNumber)) ||
+          value.v[0][0] !== value.v[1][0] || value.v[0][1] >= value.v[1][1] ||
+          [value.i, value.o].some((t) => !Array.isArray(t) || t.length !== 2 ||
+            t.some((v) => !Array.isArray(v) || v.length !== 2 || v.some((n) => n !== 0))) ||
+          strokes.length < 1 || strokes.length > 2 || strokes.some((stroke) =>
+            stroke.ty !== 'st' || stroke.w?.a !== 0 || !isFiniteNumber(stroke.w.k) || stroke.w.k <= 0 || stroke.w.k > 8))
+        fail('invalid viewport top line');
+    }
+    const range = rectangle(one('hl-range'));
+    if (range.position.some((value) => value !== 0) || range.size.some((value) => value > 256)) fail('invalid range limits');
+    if (layers.some(({ nm }) => nm === 'hl-drawn-bounds')) rectangle(one('hl-drawn-bounds'));
+    if (animation.markers !== undefined && !Array.isArray(animation.markers)) fail('markers is not a list');
+    const markers = (animation.markers ?? []).filter((marker) => isRecord(marker) && typeof marker.cm === 'string' && marker.cm.startsWith('hl:'));
+    const counts = new Map();
+    for (const marker of markers) {
+      const [, kind, row, ...rest] = marker.cm.split(':');
+      const duration = marker.dr ?? 0;
+      const allowed = kind === 'actor' ? new Set([...rows, ...(hasFlight ? ['viewport-end'] : [])]) :
+        kind === 'flight' ? new Set(['row-5', ...viewportAnchors]) : rows;
+      if (![...trackKinds, 'edge-start', 'entry', 'restore'].includes(kind) || rest.length ||
+          (trackKinds.includes(kind) ? !allowed.has(row) : row !== undefined))
+        fail(`unknown marker ${marker.cm}`);
+      if (!isFiniteNumber(marker.tm) || !isFiniteNumber(duration) || duration < 0 || marker.tm < 0 ||
+          marker.tm + duration > end || (duration === 0 && marker.tm >= end)) fail(`marker ${marker.cm} lies outside the timeline`);
+      if (trackKinds.includes(kind) ? duration <= 0 : duration !== 0) fail(`invalid duration on ${marker.cm}`);
+      const count = (counts.get(marker.cm) ?? 0) + 1;
+      counts.set(marker.cm, count);
+      if (count > (trackKinds.includes(kind) ? 64 : 1)) fail(`marker ${marker.cm} repeats`);
+    }
+    const instant = (name) => {
+      const matches = markers.filter(({ cm }) => cm === `hl:${name}`);
+      if (matches.length !== 1) fail(`expected one hl:${name}`);
+      return matches[0].tm;
+    };
+    if (markers.some(({ cm, tm }) => cm === 'hl:edge-start' && tm !== 0)) fail('edge selection must be at frame zero');
+    const entry = instant('entry');
+    const restore = instant('restore');
+    if (entry < end * 0.01 || restore <= entry || restore + end * 0.04 > end) fail('invalid copy lifetime');
+    const bindings = {};
+    for (const kind of trackKinds) {
+      const windows = markers.filter(({ cm }) => cm.startsWith(`hl:${kind}:`)).sort((a, b) => a.tm - b.tm);
+      if (!windows.length || windows[0].tm !== 0 || windows.at(-1).tm + windows.at(-1).dr !== end ||
+          windows.some((window, index) => index > 0 && window.tm !== windows[index - 1].tm + windows[index - 1].dr))
+        fail(`uncovered or overlapping ${kind} timeline`);
+      bindings[kind] = windows;
+    }
+    const findCopy = (frame) => bindings.copy.find((window) => frame >= window.tm - 1e-6 && frame < window.tm + window.dr - 1e-6) ??
+      bindings.copy.find((window) => Math.abs(frame - window.tm - window.dr) <= 1e-6);
+    const copyAnchor = findCopy(entry)?.cm.split(':')[2];
+    const visibleFrom = entry - end * 0.01;
+    const visibleTo = restore + end * 0.04;
+    if (!copyAnchor || bindings.copy.some((window) => window.tm < visibleTo && window.tm + window.dr > visibleFrom &&
+        window.cm !== `hl:copy:${copyAnchor}`) || findCopy(restore)?.cm !== `hl:copy:${copyAnchor}`)
+      fail('copy changes its source anchor');
+    const roots = new Set();
+    for (const kind of trackKinds) {
+      const layer = one(`hl-track:${kind}`);
+      positionKeys(layer, end);
+      identity({ ...layer, ks: { ...layer.ks, p: undefined, ...(kind === 'copy' ? { r: undefined, o: undefined } : {}) } });
+      roots.add(layer.ind);
+    }
+    for (const layer of layers.filter(({ nm }) => typeof nm === 'string' && nm.startsWith('hl-follow:'))) {
+      metadata(layer);
+      if (!rows.has(layer.nm.slice('hl-follow:'.length)) || one(layer.nm) !== layer || layer.ty !== 3 || layer.shapes !== undefined)
+        fail('invalid follower');
+      identity(layer, true);
+      vector(layer.ks?.p, 3);
+      roots.add(layer.ind);
+    }
+    const byIndex = new Map();
+    for (const layer of layers) {
+      if (!Number.isSafeInteger(layer.ind) || layer.ind < 0 || byIndex.has(layer.ind) ||
+          ['tm', 'tt', 'td', 'tp'].some((key) => layer[key] !== undefined) ||
+          (layer.st !== undefined && layer.st !== 0) || (layer.sr !== undefined && layer.sr !== 1))
+        fail('invalid layer identity or time remap');
+      byIndex.set(layer.ind, layer);
+    }
+    let hasDrawn = false;
+    for (const layer of layers) {
+      const name = layer.nm ?? '';
+      if (typeof name !== 'string') fail('invalid layer name');
+      if (name.startsWith('hl-track:') && !trackKinds.some((kind) => name === `hl-track:${kind}`)) fail('unknown position track');
+      if ((['hl-anchor:', 'hl-bounds:', 'hl-track:', 'hl-follow:'].some((prefix) => name.startsWith(prefix)) ||
+           ['hl-range', 'hl-drawn-bounds', 'hl-flight-bounds'].includes(name)) &&
+          ((layer.ip !== undefined && layer.ip !== 0) || (layer.op !== undefined && layer.op !== end)))
+        fail('metadata must span the composition');
+      if (name.startsWith('hl-anchor:') && !referenceNames.has(name.slice('hl-anchor:'.length))) fail('unknown reference');
+      if (name.startsWith('hl-bounds:') && !rows.has(name.slice('hl-bounds:'.length))) fail('unknown station bounds');
+      if (name.startsWith('hl-if:') && !['history', 'drawn'].some((mode) => name === `hl-if:${mode}` || name.startsWith(`hl-if:${mode}:`)))
+        fail('unknown native branch');
+      if (name === 'hl-if:drawn' || name.startsWith('hl-if:drawn:')) hasDrawn = true;
+      if (name.startsWith('hl-bounds:') || name.startsWith('hl-anchor:') || ['hl-range', 'hl-drawn-bounds', 'hl-flight-bounds'].includes(name) || roots.has(layer.ind)) continue;
+      let current = layer;
+      const seen = new Set();
+      while (current && !roots.has(current.ind)) {
+        if (seen.has(current.ind)) fail('cyclic layer parents');
+        seen.add(current.ind);
+        current = byIndex.get(current.parent);
+      }
+      if (!current) fail(`unowned layer ${name}`);
+    }
+    if (!hasDrawn) fail('the complete drawn branch is required');
+    const copy = one('hl-track:copy');
+    const copyKeys = positionKeys(copy, end);
+    scalar(copy, 'r', copyKeys);
+    scalar(copy, 'o', copyKeys);
+    const valueAt = (name, index, fallback) => copy.ks[name]?.a === 1 ? copy.ks[name].k[index].s[0] : (copy.ks[name]?.k ?? fallback);
+    copyKeys.slice(0, -1).forEach((key, index) => {
+      const visible = key.h === 1 ? valueAt('o', index, 100) > 0 : valueAt('o', index, 100) > 0 || valueAt('o', index + 1, 100) > 0;
+      if (visible && (key.t < visibleFrom - 1e-6 || copyKeys[index + 1].t > visibleTo + 1e-6))
+        fail('copy visibility exceeds its borrowing window');
+    });
+    const entryIndex = copyKeys.findIndex(({ t }) => t === entry);
+    const reference = references.get(copyAnchor);
+    if (entryIndex < 0 || copyKeys[entryIndex].s[0] !== reference[0] || copyKeys[entryIndex].s[1] !== reference[1])
+      fail('copy entry is not its reference point');
+    if (valueAt('r', entryIndex, 0) !== 0 || valueAt('o', entryIndex, 100) !== 100 ||
+        valueAt('o', 0, 100) !== 0 || valueAt('o', copyKeys.length - 1, 100) !== 0)
+      fail('invalid copy entry or visibility');
+  } catch (cause) {
+    error(where, `history ladder: ${cause.message}`);
+  }
+};
+
 const checkLabels = (labels, where) => {
   const ids = new Set();
   if (labels === undefined) return ids;
@@ -1467,6 +1744,8 @@ const checkManifest = (entry, file) => {
     if (manifest[key] !== entry[key])
       error(where, `${key} ${manifest[key]} does not match the index (${entry[key]})`);
   checkCapabilities(manifest.requiredCapabilities, where, 'requiredCapabilities');
+  if ((manifest.requiredCapabilities ?? []).includes(HISTORY_LADDER))
+    error(where, `${HISTORY_LADDER} must be required by its scene, not the pack`);
 
   const directory = dirname(file);
   const assets = new Map();
@@ -1585,6 +1864,12 @@ const checkManifest = (entry, file) => {
     if ((scene.requiredCapabilities ?? []).filter((capability) => capability.startsWith('interaction-')).length > 1)
       error(where, `${path} requires more than one interaction adapter`);
     const needsCarry = (scene.requiredCapabilities ?? []).includes(COMPOSER_CARRY);
+    const needsHistoryLadder = (scene.requiredCapabilities ?? []).includes(HISTORY_LADDER);
+    if (needsHistoryLadder && (scene.placement?.template !== 'viewport-stage-v1' ||
+        !(scene.requiredCapabilities ?? []).includes('viewport-stage-v1')))
+      error(where, `${path} requires ${HISTORY_LADDER} without viewport-stage-v1 placement and capability`);
+    if (needsHistoryLadder && scene.direction !== 'none')
+      error(where, `${path} requires ${HISTORY_LADDER} with direction ${scene.direction}; it needs none`);
     if (needsCarry && !isAnchored)
       error(where, `${path} requires ${COMPOSER_CARRY} without composer-anchor-v1 placement`);
     if (needsCarry && scene.direction !== 'none')
@@ -1645,6 +1930,7 @@ const checkManifest = (entry, file) => {
           if (needsCatBorrow && isAnchored) checkCatBorrow(animation, file);
           if (needsCopyTrack && isAnchored) checkCopyTrack(animation, file);
           if (needsCarry && isAnchored) checkComposerCarry(animation, file);
+          if (needsHistoryLadder) checkHistoryLadder(animation, file);
         }
         if (isAnchored && placement?.template === 'composer-anchor-v1')
           checkAnchorInsideStage(animation, placement, file);

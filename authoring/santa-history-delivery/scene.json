@@ -1,0 +1,51 @@
+{
+  "scene": {
+    "id": "santa-history-delivery",
+    "labelId": "santaHistoryDeliveryToastMessage",
+    "renderer": "lottie-light-svg-v1",
+    "requiredCapabilities": [
+      "lottie-light-svg-v1",
+      "viewport-stage-v1",
+      "interaction-history-ladder-v1",
+      "static-poster-v1"
+    ],
+    "placement": {
+      "template": "viewport-stage-v1",
+      "fit": "contain",
+      "align": "center"
+    },
+    "direction": "none",
+    "timing": {
+      "playbackDurationMs": 27000,
+      "loadTimeoutMs": 2000,
+      "readyTimeoutMs": 250,
+      "maxLifetimeMs": 29500
+    },
+    "posterAssetId": "santa-history-poster",
+    "posterDurationMs": 4000,
+    "variants": [
+      {
+        "when": {
+          "layout": "desktop"
+        },
+        "animationAssetId": "santa-history-desktop"
+      },
+      {
+        "when": {
+          "layout": "mobile"
+        },
+        "animationAssetId": "santa-history-mobile"
+      }
+    ]
+  },
+  "labels": {
+    "en": {
+      "santaHistoryDeliveryToastMessage": "Special delivery, with a little help from friends."
+    }
+  },
+  "assets": {
+    "santa-history-desktop": "santa-history-delivery.full.desktop.lottie.json",
+    "santa-history-mobile": "santa-history-delivery.full.mobile.lottie.json",
+    "santa-history-poster": "santa-history-delivery.poster.svg"
+  }
+}

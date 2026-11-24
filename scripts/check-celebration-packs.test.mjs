@@ -13,6 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   cpSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -147,7 +148,277 @@ const editSnowman = (edit) => (root, manifest) =>
 const ctMarker = (animation, cm) => animation.markers.find((marker) => marker.cm === cm);
 const rootKeys = (layers) => layers.find(({ nm }) => nm === 'ct-track:root').ks.p.k;
 
+/* A generic four-second ladder, independent of Santa's art or choreography.
+   Actor and copy bind streams intentionally have different windows. */
+const historyLayer = (animation, name) => animation.layers.find(({ nm }) => nm === name);
+const historyFixture = () => {
+  const fixed = (k) => ({ a: 0, k });
+  const transform = (p = [0, 0, 0], o = 100) => ({ p: fixed(p), a: fixed([0, 0, 0]), s: fixed([100, 100, 100]), r: fixed(0), o: fixed(o) });
+  const rectangle = (ind, nm, p, s) => ({ ind, nm, ty: 4, ks: transform([0, 0, 0], 0), shapes: [{ ty: 'rc', p: fixed(p), s: fixed(s), r: fixed(0) }] });
+  const key = (t, s) => ({ t, s, o: { x: 0, y: 0 }, i: { x: 1, y: 1 } });
+  const layers = [];
+  for (let index = 0; index < 6; index++) {
+    layers.push({ ind: index + 1, nm: `hl-anchor:row-${index}`, ty: 3, ks: transform([100, 40 + 48 * index, 0]) });
+    layers.push(rectangle(index + 7, `hl-bounds:row-${index}`, [100, 40 + 48 * index], [100, 70]));
+  }
+  layers.push(rectangle(13, 'hl-range', [0, 0], [24, 80]));
+  layers.push({ ind: 20, nm: 'hl-track:actor', ty: 3, ks: { ...transform(), p: { a: 1, k: [0, 20, 40, 60, 80, 100, 120].map((t, index) => key(t, [100, 40 + 48 * Math.min(5, index), 0])) } } });
+  const times = [0, 10, 40, 90, 94.8, 120];
+  const animated = (values) => ({ a: 1, k: times.map((t, index) => ({ ...key(t, values[index]), ...(index === 0 ? { h: 1 } : {}) })) });
+  layers.push({ ind: 21, nm: 'hl-track:copy', ty: 3, ks: {
+    ...transform(),
+    p: animated(times.map((t) => t === 40 ? [110, 181, 0] : [100, 136, 0])),
+    r: animated(times.map((t) => [t === 40 ? 12 : 0])),
+    o: animated([[0], [100], [100], [100], [0], [0]]),
+  } });
+  layers.push({ ind: 22, nm: 'shared actor art', ty: 4, parent: 20, ks: transform(), shapes: [
+    { ty: 'rc', p: fixed([0, 0]), s: fixed([10, 10]), r: fixed(0) },
+    { ty: 'fl', c: fixed([0.5, 0.1, 0.2, 1]), o: fixed(100) },
+  ] });
+  layers.push({ ind: 23, nm: 'hl-if:history', ty: 3, parent: 20, ks: transform() });
+  layers.push({ ind: 24, nm: 'hl-if:drawn:cards', ty: 3, parent: 20, ks: transform() });
+  return { v: '5.13.0', fr: 30, ip: 0, op: 120, w: 640, h: 400, ddd: 0, assets: [], layers, markers: [
+    ...Array.from({ length: 6 }, (_, index) => ({ cm: `hl:actor:row-${index}`, tm: index * 20, dr: 20 })),
+    { cm: 'hl:copy:row-2', tm: 0, dr: 120 },
+    { cm: 'hl:entry', tm: 10, dr: 0 },
+    { cm: 'hl:restore', tm: 90, dr: 0 },
+  ] };
+};
+
+/* A separate temporary catalog avoids adding an unreleased capability or
+   synthetic art to the immutable published packs. */
+const checkHistory = (edit = () => {}, editManifest = () => {}) => {
+  const root = mkdtempSync(join(tmpdir(), 'history-ladder-pack-'));
+  directories.push(root);
+  const pack = 'history-ladder-test/1.0.0';
+  const directory = join(root, pack);
+  mkdirSync(directory, { recursive: true });
+  const animation = historyFixture();
+  edit(animation);
+  const asset = (name, bytes, ext, mediaType) => {
+    const hash = sha256(bytes);
+    const file = `${name}.${hash.slice(0, 16)}.${ext}`;
+    writeFileSync(join(directory, file), bytes);
+    return { assetId: `${name}-${hash.slice(0, 16)}`, file, sha256: hash, bytes: bytes.length, mediaType };
+  };
+  const native = asset('ladder', Buffer.from(JSON.stringify(animation)), 'json', 'application/json');
+  const poster = asset('poster', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><path d="M0 0h10v10H0z"/></svg>'), 'svg', 'image/svg+xml');
+  const manifest = {
+    schemaVersion: 1, packId: 'history-ladder-test', version: '1.0.0', eventId: 'new-year',
+    requiredCapabilities: ['lottie-light-svg-v1', 'viewport-stage-v1', 'static-poster-v1'],
+    labels: { en: { ladderToast: 'Happy New Year!' } }, assets: [native, poster], scenes: [{
+      id: 'history-ladder-test', labelId: 'ladderToast', renderer: 'lottie-light-svg-v1',
+      requiredCapabilities: ['lottie-light-svg-v1', 'viewport-stage-v1', 'static-poster-v1', 'interaction-history-ladder-v1'],
+      placement: { template: 'viewport-stage-v1', fit: 'contain', align: 'center' }, direction: 'none',
+      timing: { playbackDurationMs: 4000, loadTimeoutMs: 2000, readyTimeoutMs: 250, maxLifetimeMs: 6500 },
+      posterAssetId: poster.assetId, posterDurationMs: 2000, variants: [{ animationAssetId: native.assetId }],
+    }],
+  };
+  editManifest(manifest);
+  const bytes = Buffer.from(JSON.stringify(manifest));
+  writeFileSync(join(directory, 'manifest.json'), bytes);
+  writeFileSync(join(root, 'index.json'), JSON.stringify({ schemaVersion: 1, revision: 'history-ladder-test', defaults: {}, packs: [{
+    packId: manifest.packId, version: manifest.version, eventId: manifest.eventId,
+    manifest: { path: `${pack}/manifest.json`, bytes: bytes.length, sha256: sha256(bytes) },
+  }] }));
+  const result = spawnSync(process.execPath, [join(SCRIPTS, 'check-celebration-packs.mjs'), root], { encoding: 'utf8' });
+  return { status: result.status, output: result.stdout + result.stderr };
+};
+
 after(() => directories.forEach((root) => rmSync(root, { recursive: true, force: true })));
+
+const addHistoryViewport = (a) => {
+  const copyOf = (name, nm, ind) => ({ ...structuredClone(historyLayer(a, name)), nm, ind });
+  const start = copyOf('hl-anchor:row-5', 'hl-anchor:viewport-start', 40);
+  start.ks.p.k[0] = 0;
+  const top = copyOf('hl-anchor:row-5', 'hl-anchor:viewport-end', 41);
+  top.ks.p.k[1] = 0;
+  const flight = copyOf('hl-track:actor', 'hl-track:flight', 42);
+  const bounds = copyOf('hl-bounds:row-5', 'hl-flight-bounds', 43);
+  const follower = copyOf('hl-anchor:row-0', 'hl-follow:row-0', 44);
+  const line = { ind: 45, ty: 4, nm: 'hl-if:drawn:top-line:row-0', parent: 44,
+    ks: { p: {a: 0, k: [0,0,0]}, a: {a:0,k:[0,0,0]}, s:{a:0,k:[100,100,100]}, r:{a:0,k:0}, o:{a:0,k:100} }, shapes:[
+    {ty:'sh',ks:{a:0,k:{v:[[-10,-80],[-10,-20]],i:[[0,0],[0,0]],o:[[0,0],[0,0]],c:false}}},
+    {ty:'st',c:{a:0,k:[0,0,0,1]},o:{a:0,k:100},w:{a:0,k:4},lc:2,lj:2},
+  ] };
+  a.layers.push(start, top, flight, bounds, follower, line);
+  a.markers.push({cm:'hl:edge-start',tm:0,dr:0}, {cm:'hl:flight:viewport-start',tm:0,dr:40}, {cm:'hl:flight:row-5',tm:40,dr:40}, {cm:'hl:flight:viewport-end',tm:80,dr:40});
+};
+
+describe('history-ladder contract', () => {
+  const layer = historyLayer;
+  const actor = (a) => layer(a, 'hl-track:actor');
+  const copy = (a) => layer(a, 'hl-track:copy');
+  const marker = (a, cm) => a.markers.find((m) => m.cm === cm);
+  const extra = (a, nm, parent = 20) => a.layers.push({ ind: 40, ty: 3, nm, parent, ks: {} });
+
+  for (const [name, edit] of [
+    ['independent actor/copy bindings', () => {}],
+    ['start-edge support, viewport flight and a top line', addHistoryViewport],
+    ['shared art with no history-specific branch', (a) => { a.layers = a.layers.filter(({ nm }) => nm !== 'hl-if:history'); }],
+    ['an optional invisible drawn envelope', (a) => {
+      const envelope = structuredClone(layer(a, 'hl-bounds:row-0'));
+      Object.assign(envelope, { ind: 40, nm: 'hl-drawn-bounds', hd: true });
+      a.layers.push(envelope);
+    }],
+    ['a static row follower and its art', (a) => {
+      const follower = structuredClone(layer(a, 'hl-anchor:row-1'));
+      Object.assign(follower, { ind: 40, nm: 'hl-follow:row-1' });
+      a.layers.push(follower, { ind: 41, ty: 3, nm: 'row follower art', parent: 40, ks: {} });
+    }],
+    ['explicit metadata timing and default identity transforms', (a) => {
+      for (const item of a.layers.filter(({ nm }) => !nm.startsWith('hl-if:') && nm !== 'shared actor art')) {
+        Object.assign(item, { ip: 0, op: 120, st: 0, sr: 1, ddd: 0, ao: 0 });
+        delete item.ks.a;
+        delete item.ks.s;
+      }
+    }],
+    ['omitted or static zero copy rotation', (a) => { copy(a).ks.r = { a: 0, k: 0 }; }],
+    ['hold and final keys without easing handles', (a) => {
+      for (const property of ['p', 'r', 'o']) for (const key of [copy(a).ks[property].k[0], copy(a).ks[property].k.at(-1)]) {
+        delete key.i; delete key.o;
+      }
+      delete actor(a).ks.p.k.at(-1).i; delete actor(a).ks.p.k.at(-1).o;
+    }],
+    ['equivalent scalar easing and zero spatial tangents', (a) => {
+      for (const key of copy(a).ks.p.k) { key.ti = [0, 0, 0]; key.to = [0, 0, 0]; }
+      for (const property of ['r', 'o']) for (const key of copy(a).ks[property].k) {
+        key.i = { x: [0.8], y: [0.8] }; key.o = { x: [0.2], y: [0.2] };
+      }
+    }],
+    ['repeated same-row binds and an invisible post-restore rebind', (a) => {
+      a.markers = a.markers.filter(({ cm }) => cm !== 'hl:copy:row-2');
+      a.markers.push({ cm: 'hl:copy:row-2', tm: 0, dr: 40 }, { cm: 'hl:copy:row-2', tm: 40, dr: 60 }, { cm: 'hl:copy:row-4', tm: 100, dr: 20 });
+    }],
+    ['unrelated marker namespaces and distinct precomp index scope', (a) => {
+      a.markers.push({ cm: 'other:unknown', tm: -1, dr: -1 });
+      a.assets.push({ id: 'empty-nested', layers: [{ ind: 20, ty: 3, nm: 'nested art', ks: {} }] });
+    }],
+  ]) it(`accepts ${name}`, () => {
+    const { status, output } = checkHistory(edit);
+    assert.equal(status, 0, output);
+  });
+
+  for (const [name, edit, expected] of [
+    ['flight missing viewport reference', (a) => { addHistoryViewport(a); a.layers = a.layers.filter(({nm}) => nm !== 'hl-anchor:viewport-end'); }, /expected one hl-anchor:viewport-end/],
+    ['flight missing bounds', (a) => { addHistoryViewport(a); a.layers = a.layers.filter(({nm}) => nm !== 'hl-flight-bounds'); }, /expected one hl-flight-bounds/],
+    ['copy bound to viewport', (a) => { addHistoryViewport(a); marker(a,'hl:copy:row-2').cm = 'hl:copy:viewport-end'; }, /unknown marker/],
+    ['late edge selection', (a) => { a.markers.push({cm:'hl:edge-start',tm:1,dr:0}); }, /edge selection must be at frame zero/],
+    ['curved viewport top line', (a) => { addHistoryViewport(a); layer(a,'hl-if:drawn:top-line:row-0').shapes[0].ks.k.i[0][0] = 2; }, /invalid viewport top line/],
+    ['transformed viewport top line', (a) => { addHistoryViewport(a); layer(a,'hl-if:drawn:top-line:row-0').ks.r.k = 10; }, /invalid viewport top line/],
+    ['a missing reference', (a) => { a.layers = a.layers.filter(({ nm }) => nm !== 'hl-anchor:row-5'); }, /expected one hl-anchor:row-5/],
+    ['a duplicate reference', (a) => { a.layers.push({ ...layer(a, 'hl-anchor:row-0'), ind: 40 }); }, /expected one hl-anchor:row-0/],
+    ['unordered reference heights', (a) => { layer(a, 'hl-anchor:row-1').ks.p.k[1] = 40; }, /references are not ordered/],
+    ['an animated reference', (a) => { layer(a, 'hl-anchor:row-0').ks.p = actor(a).ks.p; }, /metadata must be static/],
+    ['a two-dimensional reference', (a) => { layer(a, 'hl-anchor:row-0').ks.p.k.pop(); }, /invalid static vector/],
+    ['a painted reference', (a) => { layer(a, 'hl-anchor:row-0').shapes = []; }, /invalid reference/],
+    ['a transformed reference', (a) => { layer(a, 'hl-anchor:row-0').ks.s.k[0] = 90; }, /nonidentity s/],
+    ['a parented reference', (a) => { layer(a, 'hl-anchor:row-0').parent = 20; }, /unsupported metadata/],
+    ['painted metadata bounds', (a) => { layer(a, 'hl-bounds:row-0').ks.o.k = 100; }, /opacity on/],
+    ['missing explicit bounds opacity', (a) => { delete layer(a, 'hl-bounds:row-0').ks.o; }, /invisible rectangle/],
+    ['a grouped metadata rectangle', (a) => { const l = layer(a, 'hl-bounds:row-0'); l.shapes = [{ ty: 'gr', it: l.shapes }]; }, /painted or transformed rectangle/],
+    ['a metadata fill', (a) => { layer(a, 'hl-bounds:row-0').shapes.push({ ty: 'fl' }); }, /invisible rectangle/],
+    ['rounded metadata bounds', (a) => { layer(a, 'hl-bounds:row-0').shapes[0].r.k = 2; }, /painted or transformed rectangle/],
+    ['a translated metadata rectangle', (a) => { layer(a, 'hl-bounds:row-0').ks.p.k[0] = 1; }, /nonidentity p/],
+    ['an oversized envelope', (a) => { layer(a, 'hl-bounds:row-0').shapes[0].s.k[0] = 4097; }, /unbounded rectangle/],
+    ['zero envelope height', (a) => { layer(a, 'hl-bounds:row-0').shapes[0].s.k[1] = 0; }, /unbounded rectangle/],
+    ['an off-center range', (a) => { layer(a, 'hl-range').shapes[0].p.k[0] = 1; }, /invalid range limits/],
+    ['excessive host reach', (a) => { layer(a, 'hl-range').shapes[0].s.k[1] = 257; }, /invalid range limits/],
+    ['duplicate optional drawn bounds', (a) => {
+      a.layers.push({ ...structuredClone(layer(a, 'hl-bounds:row-0')), ind: 40, nm: 'hl-drawn-bounds' },
+        { ...structuredClone(layer(a, 'hl-bounds:row-0')), ind: 41, nm: 'hl-drawn-bounds' });
+    }, /expected one hl-drawn-bounds/],
+    ['painted optional drawn bounds', (a) => {
+      const b = structuredClone(layer(a, 'hl-bounds:row-0')); Object.assign(b, { ind: 40, nm: 'hl-drawn-bounds' }); b.ks.o.k = 100; a.layers.push(b);
+    }, /opacity on hl-drawn-bounds/],
+    ['metadata effects', (a) => { layer(a, 'hl-range').ef = []; }, /unsupported metadata/],
+    ['metadata masks', (a) => { layer(a, 'hl-range').masksProperties = []; }, /unsupported metadata/],
+    ['metadata auto-orientation', (a) => { layer(a, 'hl-range').ao = 1; }, /unsupported metadata/],
+    ['partial metadata lifetime', (a) => { actor(a).op = 119; }, /metadata must span/],
+    ['a static actor path', (a) => { actor(a).ks.p = { a: 0, k: [0, 0, 0] }; }, /keyed track/],
+    ['a parented copy track', (a) => { copy(a).parent = 20; }, /unsupported metadata/],
+    ['a separated track position', (a) => { actor(a).ks.p.s = true; }, /keyed track/],
+    ['actor rotation', (a) => { actor(a).ks.r.k = 2; }, /rotation on/],
+    ['actor fading', (a) => { actor(a).ks.o.k = 50; }, /opacity on/],
+    ['copy scaling', (a) => { copy(a).ks.s.k = [90, 100, 100]; }, /nonidentity s/],
+    ['a shifted track anchor', (a) => { copy(a).ks.a.k = [1, 0, 0]; }, /nonidentity a/],
+    ['a missing first path key', (a) => { actor(a).ks.p.k.shift(); }, /must cover the timeline/],
+    ['a missing final path key', (a) => { actor(a).ks.p.k.pop(); }, /must cover the timeline/],
+    ['duplicate path times', (a) => { actor(a).ks.p.k[1].t = 0; }, /invalid position key/],
+    ['legacy end values', (a) => { actor(a).ks.p.k[0].e = [0, 0]; }, /invalid position key/],
+    ['invalid hold flags', (a) => { actor(a).ks.p.k[0].h = 0; }, /invalid position key/],
+    ['spatial path handles', (a) => { actor(a).ks.p.k[0].to = [1, 0, 0]; }, /spatial tangents/],
+    ['malformed spatial handles', (a) => { actor(a).ks.p.k[0].ti = 1; }, /spatial tangents/],
+    ['implicit moving-key easing', (a) => { delete actor(a).ks.p.k[0].i; delete actor(a).ks.p.k[0].o; }, /explicit easing/],
+    ['a lone final easing handle', (a) => { delete actor(a).ks.p.k.at(-1).o; }, /handles must be paired/],
+    ['a lone hold easing handle', (a) => { delete copy(a).ks.p.k[0].o; }, /handles must be paired/],
+    ['per-axis easing disagreement', (a) => { actor(a).ks.p.k[0].i.x = [0.8, 0.7]; }, /unsupported easing/],
+    ['unbounded easing controls', (a) => { actor(a).ks.p.k[0].o.y = 1.1; }, /unsupported easing/],
+    ['different scalar times', (a) => { copy(a).ks.o.k[2].t = 41; }, /invalid o key/],
+    ['different scalar easing', (a) => { copy(a).ks.r.k[2].o.y = 0.3; }, /share key times and easing/],
+    ['out-of-range opacity', (a) => { copy(a).ks.o.k[2].s = [101]; }, /invalid o key/],
+    ['out-of-range rotation', (a) => { copy(a).ks.r.k[2].s = [361]; }, /invalid r key/],
+    ['non-numeric scalar rotation', (a) => { copy(a).ks.r = { a: 0, k: '0' }; }, /invalid r/],
+    ['multiple scalar values', (a) => { copy(a).ks.o.k[2].s = [100, 100]; }, /invalid o key/],
+    ['copy entry displaced from its reference', (a) => { copy(a).ks.p.k[1].s[0] += 1; }, /entry is not its reference/],
+    ['copy entry rotation', (a) => { copy(a).ks.r.k[1].s[0] = 1; }, /invalid copy entry or visibility/],
+    ['copy entry not fully visible', (a) => { copy(a).ks.o.k[1].s[0] = 50; }, /invalid copy entry or visibility/],
+    ['an extended pre-fade', (a) => { for (const p of ['p', 'r', 'o']) delete copy(a).ks[p].k[0].h; }, /visibility exceeds/],
+    ['lingering post-restore visibility', (a) => { copy(a).ks.o.k[4].s[0] = 1; }, /visibility exceeds/],
+    ['a missing bind', (a) => { a.markers = a.markers.filter(({ cm }) => cm !== 'hl:actor:row-1'); }, /uncovered or overlapping actor timeline/],
+    ['overlapping binds', (a) => { marker(a, 'hl:actor:row-0').dr = 21; }, /uncovered or overlapping actor timeline/],
+    ['zero-duration binds', (a) => { marker(a, 'hl:actor:row-0').dr = 0; }, /invalid duration/],
+    ['an unknown marker', (a) => { a.markers.push({ cm: 'hl:unknown', tm: 1, dr: 0 }); }, /unknown marker/],
+    ['an unknown marker row', (a) => { marker(a, 'hl:actor:row-0').cm = 'hl:actor:__proto__'; }, /unknown marker/],
+    ['an instant with arguments', (a) => { marker(a, 'hl:entry').cm = 'hl:entry:row-2'; }, /unknown marker/],
+    ['a marker with extra arguments', (a) => { marker(a, 'hl:actor:row-0').cm += ':extra'; }, /unknown marker/],
+    ['an instant with duration', (a) => { marker(a, 'hl:entry').dr = 1; }, /invalid duration/],
+    ['a missing entry', (a) => { a.markers = a.markers.filter(({ cm }) => cm !== 'hl:entry'); }, /expected one hl:entry/],
+    ['a duplicate restore', (a) => { a.markers.push({ ...marker(a, 'hl:restore') }); }, /marker hl:restore repeats/],
+    ['entry before preparation margin', (a) => { marker(a, 'hl:entry').tm = 0; }, /invalid copy lifetime/],
+    ['restore before entry', (a) => { marker(a, 'hl:restore').tm = 9; }, /invalid copy lifetime/],
+    ['restore with no fade margin', (a) => { marker(a, 'hl:restore').tm = 119; }, /invalid copy lifetime/],
+    ['an out-of-timeline marker', (a) => { marker(a, 'hl:copy:row-2').dr = 121; }, /outside the timeline/],
+    ['copy rebinding during its fade', (a) => {
+      marker(a, 'hl:copy:row-2').dr = 92;
+      a.markers.push({ cm: 'hl:copy:row-3', tm: 92, dr: 28 });
+    }, /copy changes its source anchor/],
+    ['a missing drawn branch', (a) => { a.layers = a.layers.filter(({ nm }) => nm !== 'hl-if:drawn:cards'); }, /drawn branch is required/],
+    ['an unknown branch', (a) => { extra(a, 'hl-if:unknown'); }, /unknown native branch/],
+    ['an unknown reference name', (a) => { extra(a, 'hl-anchor:__proto__'); }, /unknown reference/],
+    ['an unknown bounds name', (a) => { extra(a, 'hl-bounds:constructor'); }, /unknown station bounds/],
+    ['an unknown follower name', (a) => { a.layers.push({ ...structuredClone(layer(a, 'hl-anchor:row-0')), ind: 40, nm: 'hl-follow:__proto__' }); }, /invalid follower/],
+    ['an unknown track name', (a) => { extra(a, 'hl-track:extra'); }, /unknown position track/],
+    ['art parented to a reference', (a) => { layer(a, 'shared actor art').parent = 1; }, /unowned layer/],
+    ['unowned root artwork', (a) => { delete layer(a, 'shared actor art').parent; }, /unowned layer/],
+    ['cyclic artwork parents', (a) => { layer(a, 'shared actor art').parent = 23; layer(a, 'hl-if:history').parent = 22; }, /cyclic layer parents/],
+    ['a duplicate layer index', (a) => { layer(a, 'shared actor art').ind = 20; }, /invalid layer identity/],
+    ['a missing layer index', (a) => { delete layer(a, 'shared actor art').ind; }, /invalid layer identity/],
+    ['a root time remap', (a) => { a.tm = {}; }, /invalid composition/],
+    ['a layer time remap', (a) => { layer(a, 'shared actor art').tm = {}; }, /invalid layer identity or time remap/],
+    ['a shifted art start', (a) => { layer(a, 'shared actor art').st = 1; }, /invalid layer identity or time remap/],
+    ['a root matte', (a) => { layer(a, 'shared actor art').td = 0; }, /invalid layer identity or time remap/],
+    ['more than 48 root layers', (a) => { while (a.layers.length <= 48) a.layers.push({ ty: 3, ind: a.layers.length + 100, nm: 'extra', parent: 20, ks: {} }); }, /invalid composition/],
+  ]) it(`rejects ${name}`, () => {
+    const { status, output } = checkHistory(edit);
+    assert.equal(status, 1, output);
+    assert.match(output, expected);
+    assert.match(output, /history ladder:/);
+  });
+
+  for (const [name, edit, expected] of [
+    ['pack-level interaction capability', (m) => { m.requiredCapabilities.push('interaction-history-ladder-v1'); }, /must be required by its scene/],
+    ['mirroring', (m) => { m.scenes[0].direction = 'mirror'; }, /it needs none/],
+    ['missing viewport capability', (m) => { m.scenes[0].requiredCapabilities = m.scenes[0].requiredCapabilities.filter((c) => c !== 'viewport-stage-v1'); }, /without viewport-stage-v1/],
+    ['composer placement', (m) => { m.scenes[0].placement.template = 'composer-anchor-v1'; }, /without viewport-stage-v1/],
+    ['a different variant template', (m) => { m.scenes[0].variants[0].placement = { template: 'composer-anchor-v1' }; }, /template differs/],
+    ['two interaction adapters', (m) => { m.scenes[0].requiredCapabilities.push('interaction-composer-carry-v1'); }, /more than one interaction adapter/],
+  ]) it(`rejects ${name} in the manifest`, () => {
+    const { status, output } = checkHistory(() => {}, edit);
+    assert.equal(status, 1, output);
+    assert.match(output, expected);
+  });
+});
 
 describe('check-celebration-packs', () => {
   it('accepts the published packs', () => {

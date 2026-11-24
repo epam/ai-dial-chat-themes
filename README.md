@@ -312,6 +312,27 @@ Both static posters match the updated art. The stories, durations, composer
 contacts and required capabilities are unchanged. The JSON and SVG files are
 the authored source; publication does not generate them from Chat components.
 
+### Unpublished scene authoring
+
+The maintained [Santa History Delivery source](./authoring/santa-history-delivery/README.md)
+contains native desktop/mobile Lottie variants, a static poster, a scene descriptor
+and the accepted descent studies. Validate the complete scene without publishing it:
+
+```sh
+node authoring/santa-history-delivery/check.mjs
+```
+
+This stages a temporary catalog and runs the same publication checker. The scene
+requires the in-development `interaction-history-ladder-v1` Chat capability;
+source validation does not establish released-client support. Published pack
+versions and defaults are unchanged. See the authoring README for integration
+and retention prerequisites. Santa is reserved for the existing `happy new year`
+secret phrase; the ordinary gift-click pool remains unchanged.
+
+The history validator also checks optional start-edge support, viewport flight
+references and bounds, and the constrained line slot used to reach the window top.
+These additions remain part of the unpublished capability described by the source.
+
 ### Composer-anchored scenes
 
 A scene can attach to the Chat composer instead of the viewport (`composer-anchor-v1`). It is authored around a reference composer, `anchorRect`, in its own stage coordinates. Chat measures the real composer once and scales the whole stage uniformly by `clamp(composerWidth / anchorRect.width, scale.min, scale.max)`, aligning the center and `edge` of `anchorRect` with it. A stage is never stretched, so one composition serves every composer width. With no usable composer, `fallback: "stage-anchor"` plays around a synthetic composer of `anchorRect × scale.min` in the lower half of the viewport, and `fallback: "poster"` shows the poster.
@@ -468,7 +489,7 @@ node scripts/check-celebration-packs.mjs
 node --test scripts/check-celebration-packs.test.mjs
 ```
 
-The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, the copy-track slot, marker, reference, override, pose and layer-cap rules, and composer-carry hierarchy, travel, side-slot and placement rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
+The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, the copy-track slot, marker, reference, override, pose and layer-cap rules, composer-carry hierarchy, travel, side-slot and placement rules, and history-ladder station, marker, bounds, branch ownership and copy-visibility rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
 
 ### Publish a Pack Version
 
