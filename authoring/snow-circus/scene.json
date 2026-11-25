@@ -1,0 +1,50 @@
+{
+  "id": "snow-circus",
+  "labelId": "snowCircusToastMessage",
+  "renderer": "lottie-light-svg-v1",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "composer-anchor-v1",
+    "interaction-button-props-v1",
+    "static-poster-v1"
+  ],
+  "direction": "none",
+  "placement": {
+    "template": "composer-anchor-v1",
+    "anchor": "composer",
+    "anchorRect": {
+      "x": 0,
+      "y": 300,
+      "width": 520,
+      "height": 56
+    },
+    "edge": "top",
+    "scale": {
+      "min": 0.58,
+      "max": 0.9
+    },
+    "fallback": "stage-anchor"
+  },
+  "timing": {
+    "playbackDurationMs": 26000,
+    "loadTimeoutMs": 2000,
+    "readyTimeoutMs": 250,
+    "maxLifetimeMs": 28250
+  },
+  "posterAssetId": "new-year-default-poster-fc8fb7b6c7f0b578",
+  "posterDurationMs": 3000,
+  "variants": [
+    {
+      "when": {
+        "layout": "desktop"
+      },
+      "animationAssetId": "new-year-default-desktop-ab5df71a0fbf1225"
+    },
+    {
+      "when": {
+        "layout": "mobile"
+      },
+      "animationAssetId": "new-year-default-mobile-ab5df71a0fbf1225"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "2026-11-24.4",
+  "revision": "2026-11-25.3",
   "packs": [
     {
       "packId": "new-year-default",
@@ -30,6 +30,16 @@
         "path": "new-year-default/1.4.0/manifest.json",
         "bytes": 12536,
         "sha256": "cc83a639308493538dab6dfead90b430fdf7df0a900eeeffc819df9ecd4f66eb"
+      }
+    },
+    {
+      "packId": "new-year-default",
+      "version": "1.5.1",
+      "eventId": "new-year",
+      "manifest": {
+        "path": "new-year-default/1.5.1/manifest.json",
+        "bytes": 15002,
+        "sha256": "2a905f52b917bb6ed406b6714b19ea41b5446f4d2ea390231f8cbc254fc064d0"
       }
     },
     {
@@ -66,7 +76,7 @@
   "defaults": {
     "new-year": {
       "packId": "new-year-default",
-      "version": "1.4.0"
+      "version": "1.5.1"
     },
     "halloween": {
       "packId": "halloween-default",
