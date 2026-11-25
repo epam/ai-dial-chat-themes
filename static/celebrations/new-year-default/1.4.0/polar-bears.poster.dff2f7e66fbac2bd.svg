@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Two rounded polar bears holding a festive rope">
+<defs><g id="bear" stroke="#22304a" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="0" cy="3" rx="25" ry="2.5" fill="#7d9cc7" stroke="none" opacity=".2"/>
+<ellipse cx="-13" cy="-2" rx="10" ry="4.5" fill="#eef3fb"/><ellipse cx="13" cy="-2" rx="10" ry="4.5" fill="#eef3fb"/>
+<ellipse cx="0" cy="-28" rx="25" ry="27" fill="#eef3fb"/>
+<ellipse cx="-1.8" cy="-29.9" rx="22.5" ry="24.3" fill="#fff" stroke="none"/>
+<path d="M23 -38C29 -23 14 0 -8 -3C-18 -6 -23 -13 -23 -17C-10 -5 11 -13 18 -24C20 -29 21 -34 23 -38Z" fill="#c6d5ec" stroke="none"/>
+<circle cx="-2" cy="-64" r="21" fill="#eef3fb"/><circle cx="-3.4" cy="-65.4" r="18.9" fill="#fff" stroke="none"/>
+<path d="M17 -72C22 -58 13 -43 -8 -44C-16 -46 -20 -51 -21 -55C-11 -47 7 -51 13 -62C15 -65 16 -69 17 -72Z" fill="#c6d5ec" stroke="none"/>
+<circle cx="-19" cy="-81" r="6" fill="#eef3fb"/><circle cx="10" cy="-81" r="6" fill="#eef3fb"/>
+<circle cx="-19" cy="-81" r="2.5" fill="#c6d5ec" stroke="none"/><circle cx="10" cy="-81" r="2.5" fill="#c6d5ec" stroke="none"/>
+<ellipse cx="-3" cy="-59.5" rx="9.5" ry="6.5" fill="#f7f9fd" stroke="none"/>
+<ellipse cx="-10" cy="-69" rx="1.6" ry="1.8" fill="#1d2230" stroke="none"/><ellipse cx="3" cy="-69" rx="1.6" ry="1.8" fill="#1d2230" stroke="none"/>
+<path d="M-7 -64C-7 -66 -5 -66 -3 -66C-1 -66 1 -66 1 -64C1 -62 -2 -60 -3 -60C-4 -60 -7 -62 -7 -64Z" fill="#1d2230" stroke="none"/>
+<path d="M-3 -61L-3 -58M-6 -58Q-4 -56 -3 -58Q-2 -56 0 -58" fill="none" stroke="#1d2230" stroke-width=".9"/>
+<path d="M-17 -50C-7 -46 8 -46 18 -50L19 -43C8 -39 -8 -39 -19 -43Z" fill="currentColor" stroke-width=".8"/>
+<path d="M9 -44C15 -42 15 -34 12 -23L5 -25C8 -34 8 -40 4 -43Z" fill="currentColor" stroke-width=".8"/>
+<path d="M-17 -45C-23 -43 -25 -36 -20 -29C-17 -25 -11 -29 -12 -33C-13 -37 -10 -43 -17 -45Z" fill="#fff"/>
+<ellipse cx="-16" cy="-33" rx="6" ry="5.5" fill="#eef3fb"/><circle cx="-19" cy="-36" r="2.5" fill="#fff" stroke-width=".8"/>
+</g></defs>
+<g transform="translate(265 226) scale(-1.14 1.14)" color="#8e2436"><use href="#bear"/></g>
+<g transform="translate(375 226) scale(1.18)" color="#2d6e67"><use href="#bear"/></g>
+<path d="M284 188C302 205 334 211 356 187" fill="none" stroke="#6f786d" stroke-width="1.3" stroke-linecap="round"/>
+<defs><g id="warm-bulb"><path d="M-1.1 0C-1.2 1.6 -2.7 2 -2.7 4.1C-2.7 6.1 -1.3 7 0 7C1.5 7 2.7 5.9 2.7 4.1C2.7 2.2 1.1 1.6 1.1 0Z" fill="#ffe5a3" stroke="#b1a17b" stroke-width=".4"/><path d="M1.2 1C3.3 3 3.1 6 -.1 7C1.5 5.1 1.8 3.6 1.2 1Z" fill="#dbb96c" opacity=".6"/><ellipse cx="-.8" cy="3.4" rx=".85" ry="1.8" fill="#fffbed"/><path d="M-1.6 -.8H1.6L1.3 1H-1.3Z" fill="#657469"/></g></defs>
+<g><use href="#warm-bulb" x="298" y="197"/><use href="#warm-bulb" x="321" y="202"/><use href="#warm-bulb" x="344" y="197"/></g>
+<g fill="none" stroke="#87989c" stroke-width=".7"><path d="M286 190V196M310 201V205M354 189V196"/></g>
+<g stroke="#819095" stroke-width=".45"><circle cx="286" cy="200" r="4" fill="#e8ecea"/><circle cx="310" cy="209" r="4" fill="#b96c77"/><circle cx="354" cy="199.5" r="3.5" fill="#ded5c1"/></g>
+</svg>
