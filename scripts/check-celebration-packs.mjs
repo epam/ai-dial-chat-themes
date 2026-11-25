@@ -70,6 +70,7 @@ const CAPABILITIES = new Set([
   'interaction-copy-track-v1',
   'interaction-composer-carry-v1',
   'interaction-history-ladder-v1',
+  'interaction-button-props-v1',
   'static-poster-v1',
   'static-trigger-v1',
 ]);
@@ -255,6 +256,85 @@ const isLottieVersionSupported = (version) => {
   const [, minor, patch] = parts;
   const [, maxMinor, maxPatch] = MAX_LOTTIE_VERSION;
   return minor < maxMinor || (minor === maxMinor && patch <= maxPatch);
+};
+
+/* Bounded authored contact grammar shared with Chat's button-props adapter. */
+const BUTTON_PROPS = 'interaction-button-props-v1';
+const checkButtonProps = (animation, where) => {
+  try {
+    const fail = (message) => { throw new Error(message); };
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const fixed = (p, value) => p?.a === 0 && same(p.k, value);
+    const { layers, op, fr } = animation;
+    if (animation.ip !== 0 || op / fr > 26 || layers.length > 48) fail('invalid composition');
+    const ids = layers.map(({ ind }) => ind);
+    if (new Set(ids).size !== ids.length || ids.some((id) => !Number.isInteger(id))) fail('duplicate layer indices');
+    const slot = (name, parent) => {
+      const matches = layers.filter(({ nm }) => nm === name);
+      if (matches.length !== 1) fail(`expected one ${name}`);
+      const [l] = matches;
+      if (l.ty !== 3 || l.parent !== parent || !fixed(l.ks?.a, [0,0,0]) || !fixed(l.ks?.s, [100,100,100]) || !fixed(l.ks?.r, 0) || l.tm != null || (l.st != null && l.st !== 0) || (l.sr != null && l.sr !== 1) || l.ks?.sk != null || l.ks?.sa != null || (l.ao != null && l.ao !== 0)) fail(`invalid ${name} transform`);
+      return l;
+    };
+    const keys = (p, dim) => {
+      if (p?.a !== 1 || !Array.isArray(p.k) || p.k.length < 2 || p.k.length > 128) fail('invalid contact track');
+      p.k.forEach((k,i) => {
+        if (!k || !Number.isFinite(k.t) || k.t < 0 || k.t > op || (i > 0 && k.t <= p.k[i-1].t) || !Array.isArray(k.s) || k.s.length !== dim || !k.s.every(Number.isFinite) || Object.keys(k).some((name) => !['t','s','i','o'].includes(name))) fail('invalid contact key');
+        if ((k.i != null || k.o != null) && (!same(k.i,{x:[1],y:[1]}) || !same(k.o,{x:[0],y:[0]}))) fail('contact tracks must be linear');
+      });
+      if (p.k[0].t !== 0 || p.k.at(-1).t !== op) fail('incomplete contact track');
+      return p.k;
+    };
+    const stage = slot('bp-stage');
+    for (const layer of layers) {
+      const visited = new Set(); let parent = layer.parent;
+      while (parent != null) {
+        if (visited.has(parent) || parent === layer.ind) fail('cyclic hierarchy');
+        visited.add(parent); const ancestor = layers.find(({ind})=>ind===parent);
+        if (!ancestor) fail('missing parent'); parent=ancestor.parent;
+      }
+      if (layer.ty===4 && !visited.has(stage.ind)) fail('art must descend from the stage');
+    }
+    if (!fixed(stage.ks?.p,[0,0,0]) || !fixed(stage.ks?.o,100)) fail('stage must be identity');
+    const boundNames = ['bp-bounds:min', 'bp-bounds:max'];
+    if (layers.some(({ nm }) => boundNames.includes(nm))) {
+      const [min, max] = boundNames.map(name => {
+        const layer = slot(name), point = layer.ks?.p?.k;
+        if (layer.ks?.p?.a !== 0 || !Array.isArray(point) || point.length !== 3 ||
+            !point.every(Number.isFinite) || point[2] !== 0 || !fixed(layer.ks?.o, 0))
+          fail('invalid artwork bounds');
+        return point;
+      });
+      if (min[0] < 0 || min[1] < 0 || max[0] > animation.w || max[1] > animation.h ||
+          min[0] >= max[0] || min[1] >= max[1]) fail('artwork bounds outside composition');
+    }
+    const count = layers.filter(({nm})=>nm?.startsWith('bp-reference:')).length;
+    if (count<1 || count>2) fail('expected one or two props');
+    const allWeights=[];
+    for(let n=0;n<count;n++) {
+      const ref=slot(`bp-reference:${n}`).ks?.p;
+      if(ref?.a!==0 || !Array.isArray(ref.k) || ref.k.length!==3 || !ref.k.every(Number.isFinite) || ref.k[2]!==0) fail('invalid reference');
+      const weight=slot(`bp-weight:${n}`);
+      if(!fixed(weight.ks?.p,[0,0,0])) fail('weight position must be identity');
+      const w=keys(weight.ks?.o,1); allWeights.push(w);
+      const prop=slot(`bp-prop:${n}`,stage.ind); const p=keys(prop.ks?.p,3),o=keys(prop.ks?.o,1);
+      for(const track of [p,o,...allWeights]) if(!same(track.map(k=>k.t),w.map(k=>k.t))) fail('tracks must share key times');
+      if(p.some(({s})=>s[2]!==0 || Math.abs(s[0])>animation.w || Math.abs(s[1])>animation.h) || [...w,...o].some(({s})=>s[0]<0 || s[0]>100)) fail('track outside bounds');
+      const marker = kind => {
+        const matches=(animation.markers??[]).filter(({cm})=>cm===`bp:${kind}:${n}`);
+        if(matches.length!==1 || !Number.isFinite(matches[0].tm) || matches[0].dr!==0) fail(`invalid ${kind} marker`);
+        return matches[0].tm;
+      };
+      const entry=marker('entry'),restore=marker('restore');
+      if(entry<op*.02 || restore<=entry || restore>op-fr*.25) fail('invalid borrowing interval');
+      for(const frame of [entry,restore]) {
+        const i=p.findIndex(({t})=>t===frame);
+        if(i<0 || !same(p[i].s,ref.k) || w[i].s[0]!==100) fail('prop must contact its reference at entry and return');
+      }
+      if(o.some(({t,s})=>(t<entry-fr*.2 || t>restore+fr*.2) && s[0]!==0)) fail('copy visible outside borrowing interval');
+    }
+    if(allWeights[0].some((_,i)=>allWeights.reduce((total,w)=>total+w[i].s[0],0)>100)) fail('overlapping contacts');
+  } catch(e) { error(where, `button props: ${e.message}`); }
 };
 
 const checkLottie = (animation, playbackDurationMs, where) => {
@@ -1856,6 +1936,8 @@ const checkManifest = (entry, file) => {
       error(where, `${path} requires ${CAT_BORROW} without composer-anchor-v1 placement`);
     if (needsCatBorrow && scene.direction !== 'none')
       error(where, `${path} requires ${CAT_BORROW} with direction ${scene.direction}; it needs none`);
+    const needsButtonProps = (scene.requiredCapabilities ?? []).includes(BUTTON_PROPS);
+    if (needsButtonProps && (!isAnchored || scene.direction !== 'none')) error(where, `${path} button props needs composer anchoring and direction none`);
     const needsCopyTrack = (scene.requiredCapabilities ?? []).includes(COPY_TRACK);
     if (needsCopyTrack && !isAnchored)
       error(where, `${path} requires ${COPY_TRACK} without composer-anchor-v1 placement`);
@@ -1926,6 +2008,7 @@ const checkManifest = (entry, file) => {
           checkedAssets.add(asset.assetId);
           if (depth(animation) > LOTTIE_MAX_DEPTH) error(file, `JSON depth exceeds ${LOTTIE_MAX_DEPTH}`);
           checkLottie(animation, scene.timing.playbackDurationMs, file);
+          if (needsButtonProps) checkButtonProps(animation, file);
           if (needsOutline && isAnchored) checkComposerOutlineSlots(animation, file);
           if (needsCatBorrow && isAnchored) checkCatBorrow(animation, file);
           if (needsCopyTrack && isAnchored) checkCopyTrack(animation, file);
@@ -2036,7 +2119,13 @@ const checkIndex = () => {
       continue;
     }
     const versions = readdirSync(packDirectory);
-    if (versions.length > MAX_VERSIONS_PER_PACK)
+    /* Preserve the published 1.2–1.4 assets while adding Snow Circus. This
+       exact set is the only four-version exception; retire it separately
+       after the 30-day index retention window permits removal. */
+    const retainedNewYearRelease = packId === 'new-year-default' &&
+      versions.length === 4 &&
+      ['1.2.0', '1.3.0', '1.4.0', '1.5.1'].every(version => versions.includes(version));
+    if (versions.length > MAX_VERSIONS_PER_PACK && !retainedNewYearRelease)
       error(
         rel(packDirectory),
         `holds ${versions.length} versions; keep at most ${MAX_VERSIONS_PER_PACK} (see README "Retention")`,

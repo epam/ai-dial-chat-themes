@@ -1461,3 +1461,73 @@ describe('composer carry', () => {
     assert.match(output, message);
   });
 });
+
+
+describe('Snow Circus button-props publication contract', () => {
+  const pack = 'new-year-default/1.5.1';
+  const scene = manifest => manifest.scenes.find(({id})=>id==='snow-circus');
+  it('accepts the authored out-and-back composition', () => {
+    const result=check(undefined,pack); assert.equal(result.status,0,result.output);
+  });
+  for(const [name,mutate,pattern] of [
+    ['missing contact slot', a=>a.layers=a.layers.filter(l=>l.nm!=='bp-reference:0'), /button props/],
+    ['wrong return', a=>a.layers.find(l=>l.nm==='bp-prop:0').ks.p.k.find(k=>k.t===690).s[0]+=10, /contact its reference/],
+    ['animated scale', a=>a.layers.find(l=>l.nm==='bp-prop:0').ks.s={a:1,k:[]}, /transform/],
+    ['unknown easing', a=>a.layers.find(l=>l.nm==='bp-prop:0').ks.p.k[1].o={x:[.3],y:[0]}, /must be linear/],
+    ['mismatched clock', a=>a.layers.find(l=>l.nm==='bp-weight:0').ks.o.k[1].t+=1, /share key times/],
+    ['early restore', a=>a.markers.find(m=>m.cm==='bp:restore:0').tm=0, /borrowing interval/],
+    ['incomplete artwork bounds', a=>a.layers=a.layers.filter(l=>l.nm!=='bp-bounds:max'), /expected one bp-bounds:max/],
+    ['inverted artwork bounds', a=>a.layers.find(l=>l.nm==='bp-bounds:min').ks.p.k=[500,160,0], /bounds outside composition/],
+    ['out-of-stage artwork bounds', a=>a.layers.find(l=>l.nm==='bp-bounds:max').ks.p.k=[521,350,0], /bounds outside composition/],
+    ['animated artwork bounds', a=>a.layers.find(l=>l.nm==='bp-bounds:min').ks.p={a:1,k:[]}, /invalid artwork bounds/],
+  ]) it(`rejects ${name}`,()=>{
+    const result=check((root,manifest)=>replaceAnimation(root,manifest,scene(manifest).variants[0].animationAssetId,mutate,pack),pack);
+    assert.notEqual(result.status,0);assert.match(result.output,pattern);
+  });
+  it('rejects a mirrored scene',()=>{
+    const result=check((_root,manifest)=>{scene(manifest).direction='mirror'},pack);
+    assert.notEqual(result.status,0);assert.match(result.output,/button props needs/);
+  });
+  it('accepts earlier sources without optional bounds',()=>{
+    const result=check((root,manifest)=>replaceAnimation(root,manifest,scene(manifest).variants[0].animationAssetId,
+      a=>{a.layers=a.layers.filter(l=>!l.nm?.startsWith('bp-bounds:'));},pack),pack);
+    assert.equal(result.status,0,result.output);
+  });
+});
+
+
+describe('standard New Year Snow Circus release', () => {
+  it('adds Snow Circus without replacing any 1.4.0 scene, label or asset', () => {
+    const before = readJson(join(SOURCE, 'new-year-default/1.4.0/manifest.json'));
+    const after = readJson(join(SOURCE, 'new-year-default/1.5.1/manifest.json'));
+    const index = readJson(join(SOURCE, 'index.json'));
+    assert.deepEqual(index.defaults['new-year'], { packId: 'new-year-default', version: '1.5.1' });
+    assert.deepEqual(after.scenes.filter(({ id }) => id !== 'snow-circus'), before.scenes);
+    assert.deepEqual(after.requiredCapabilities, before.requiredCapabilities);
+    assert.equal(after.scenes.length, before.scenes.length + 1);
+    for (const [language, labels] of Object.entries(before.labels))
+      for (const [key, value] of Object.entries(labels))
+        assert.equal(after.labels[language][key], value);
+    for (const asset of before.assets) {
+      assert.deepEqual(after.assets.find(({ assetId }) => assetId === asset.assetId), asset);
+      assert.deepEqual(readFileSync(join(SOURCE, 'new-year-default/1.5.1', asset.file)),
+        readFileSync(join(SOURCE, 'new-year-default/1.4.0', asset.file)));
+    }
+  });
+
+  for (const [name, edit] of [
+    ['a fifth New Year version', root => mkdirSync(join(root, 'new-year-default/1.6.0'))],
+    ['a different four-version New Year set', root => {
+      rmSync(join(root, 'new-year-default/1.2.0'), { recursive: true });
+      mkdirSync(join(root, 'new-year-default/1.6.0'));
+    }],
+    ['four versions of another pack', root => {
+      for (const version of ['1.1.0', '1.2.0', '1.3.0'])
+        mkdirSync(join(root, 'halloween-default', version));
+    }],
+  ]) it(`still rejects ${name}`, () => {
+    const result = check(edit, 'new-year-default/1.5.1');
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /holds [45] versions; keep at most 3/);
+  });
+});

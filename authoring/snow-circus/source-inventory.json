@@ -1,0 +1,25 @@
+[
+  {
+    "variant": "desktop",
+    "bytes": 145363,
+    "sha256": "ab5df71a0fbf1225fe375392069a158fdc6a00b1e3181199999b200ef821ca2c",
+    "layers": 35,
+    "keys": 1120,
+    "paths": 108,
+    "vertices": 215
+  },
+  {
+    "variant": "mobile",
+    "bytes": 145363,
+    "sha256": "ab5df71a0fbf1225fe375392069a158fdc6a00b1e3181199999b200ef821ca2c",
+    "layers": 35,
+    "keys": 1120,
+    "paths": 108,
+    "vertices": 215
+  },
+  {
+    "variant": "poster",
+    "bytes": 10753,
+    "sha256": "fc8fb7b6c7f0b5784557c27d5781938650a798b6b78115d4a8d59e6a53d0ece6"
+  }
+]

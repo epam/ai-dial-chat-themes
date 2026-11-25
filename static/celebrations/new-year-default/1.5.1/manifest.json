@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "packId": "new-year-default",
+  "version": "1.5.1",
+  "eventId": "new-year",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "viewport-stage-v1",
+    "static-poster-v1"
+  ],
+  "assets": [
+    {
+      "assetId": "new-year-default-bullfinch-couriers-desktop-1901d6be39a86042",
+      "file": "bullfinch-couriers.desktop.1901d6be39a86042.json",
+      "mediaType": "application/json",
+      "bytes": 104538,
+      "sha256": "1901d6be39a86042d15a1eb6fa0483efedf558cc6b2ef317e6c4d525feaa2aa3"
+    },
+    {
+      "assetId": "new-year-default-bullfinch-couriers-mobile-04574a97fa496313",
+      "file": "bullfinch-couriers.mobile.04574a97fa496313.json",
+      "mediaType": "application/json",
+      "bytes": 104543,
+      "sha256": "04574a97fa496313ae644a0e0384bb0e347492174259c6a0a8dfe4886c27c19d"
+    },
+    {
+      "assetId": "new-year-default-bullfinch-couriers-poster-bd5d3d70984ca8fc",
+      "file": "bullfinch-couriers.poster.bd5d3d70984ca8fc.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 79488,
+      "sha256": "bd5d3d70984ca8fc40283aee3c1a87a8ae9a7f0191a89058b5c43ab7d67556a4"
+    },
+    {
+      "assetId": "new-year-default-gift-wrapping-desktop-28260bbcf8f593a6",
+      "file": "gift-wrapping.desktop.28260bbcf8f593a6.json",
+      "mediaType": "application/json",
+      "bytes": 112711,
+      "sha256": "28260bbcf8f593a605aabb29c2230d88798d1636e4c198ca5c806454709c50e7"
+    },
+    {
+      "assetId": "new-year-default-gift-wrapping-mobile-3d541976f665e859",
+      "file": "gift-wrapping.mobile.3d541976f665e859.json",
+      "mediaType": "application/json",
+      "bytes": 111848,
+      "sha256": "3d541976f665e85926dbf3f3302ab9e8f3746ddbf12ab821da18f871b1866c5c"
+    },
+    {
+      "assetId": "new-year-default-gift-wrapping-poster-964179e2cd040815",
+      "file": "gift-wrapping.poster.964179e2cd040815.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 9297,
+      "sha256": "964179e2cd04081512181d81ae9fded957f265cff1e16e407a8a469896a4717a"
+    },
+    {
+      "assetId": "new-year-default-snowman-delivery-desktop-e102fb11b63505f4",
+      "file": "snowman-delivery.desktop.e102fb11b63505f4.json",
+      "mediaType": "application/json",
+      "bytes": 278719,
+      "sha256": "e102fb11b63505f431b2f77fb66438cc6f9374242ea23e5c16f16f19187988af"
+    },
+    {
+      "assetId": "new-year-default-snowman-delivery-mobile-655cd2599ddb1964",
+      "file": "snowman-delivery.mobile.655cd2599ddb1964.json",
+      "mediaType": "application/json",
+      "bytes": 286910,
+      "sha256": "655cd2599ddb1964fc6c97033ff3d4f6fcb9ed7ffbd676b598c2de5238568f10"
+    },
+    {
+      "assetId": "new-year-default-snowman-delivery-poster-9a5fcf2229c5f6db",
+      "file": "snowman-delivery.poster.9a5fcf2229c5f6db.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 4362,
+      "sha256": "9a5fcf2229c5f6db023c9c9f276f9acad5d961dbd8f46b79cd6ac1a4846dc1df"
+    },
+    {
+      "assetId": "new-year-default-santa-history-delivery-desktop-0166262c3d3c46ae",
+      "file": "santa-history-delivery.desktop.0166262c3d3c46ae.json",
+      "mediaType": "application/json",
+      "bytes": 280513,
+      "sha256": "0166262c3d3c46ae2c11fcc387169bcb3e77d8031a45303099f4643f29170879"
+    },
+    {
+      "assetId": "new-year-default-santa-history-delivery-mobile-e44dde821ea6b972",
+      "file": "santa-history-delivery.mobile.e44dde821ea6b972.json",
+      "mediaType": "application/json",
+      "bytes": 274037,
+      "sha256": "e44dde821ea6b9722ed1aa0b911de524a598418c6dc1f9e00a410be1750f3ef4"
+    },
+    {
+      "assetId": "new-year-default-santa-history-delivery-poster-dbf68dbaca2e2cac",
+      "file": "santa-history-delivery.poster.dbf68dbaca2e2cac.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 18530,
+      "sha256": "dbf68dbaca2e2cacddc5962eb022228afd7e39eca13d3d6ce75a620184ef3a71"
+    },
+    {
+      "assetId": "new-year-default-polar-bears-desktop-2dcdcf837b4415ea",
+      "file": "polar-bears.desktop.2dcdcf837b4415ea.json",
+      "mediaType": "application/json",
+      "bytes": 255420,
+      "sha256": "2dcdcf837b4415eaecb7a203cc80260d23dd0536a64278223ebee73cdc3c171c"
+    },
+    {
+      "assetId": "new-year-default-polar-bears-mobile-78f96dd7945d768f",
+      "file": "polar-bears.mobile.78f96dd7945d768f.json",
+      "mediaType": "application/json",
+      "bytes": 241991,
+      "sha256": "78f96dd7945d768f8ca954dd97597b9610525d2fd3292e47f9126a74a4db8754"
+    },
+    {
+      "assetId": "new-year-default-polar-bears-poster-dff2f7e66fbac2bd",
+      "file": "polar-bears.poster.dff2f7e66fbac2bd.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 3246,
+      "sha256": "dff2f7e66fbac2bd200af4ce78d70b976c02e65e306a956d23281167ac2a5492"
+    },
+    {
+      "assetId": "new-year-default-desktop-ab5df71a0fbf1225",
+      "file": "snow-circus.desktop.ab5df71a0fbf1225.json",
+      "mediaType": "application/json",
+      "bytes": 145363,
+      "sha256": "ab5df71a0fbf1225fe375392069a158fdc6a00b1e3181199999b200ef821ca2c"
+    },
+    {
+      "assetId": "new-year-default-mobile-ab5df71a0fbf1225",
+      "file": "snow-circus.mobile.ab5df71a0fbf1225.json",
+      "mediaType": "application/json",
+      "bytes": 145363,
+      "sha256": "ab5df71a0fbf1225fe375392069a158fdc6a00b1e3181199999b200ef821ca2c"
+    },
+    {
+      "assetId": "new-year-default-poster-fc8fb7b6c7f0b578",
+      "file": "snow-circus.poster.fc8fb7b6c7f0b578.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 10753,
+      "sha256": "fc8fb7b6c7f0b5784557c27d5781938650a798b6b78115d4a8d59e6a53d0ece6"
+    }
+  ],
+  "labels": {
+    "en": {
+      "bullfinchCouriersToastMessage": "Two couriers, one gingerbread star, only a few bites missing. Send \"{{phrase}}\" in the start-page chat for a secret surprise.",
+      "santaHistoryDeliveryToastMessage": "Special delivery, with a little help from friends.",
+      "polarBearsWorkshopToastMessage": "Two polar bears bring the holiday lights.",
+      "snowCircusToastMessage": "Two performers, three snowballs, one splendid moustache."
+    },
+    "ru": {
+      "snowCircusToastMessage": "\u0414\u0432\u0430 \u0430\u0440\u0442\u0438\u0441\u0442\u0430, \u0442\u0440\u0438 \u0441\u043d\u0435\u0436\u043a\u0430 \u0438 \u0432\u0435\u043b\u0438\u043a\u043e\u043b\u0435\u043f\u043d\u044b\u0435 \u0443\u0441\u044b."
+    }
+  },
+  "scenes": [
+    {
+      "id": "bullfinch-couriers",
+      "labelId": "bullfinchCouriersToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "viewport-stage-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "viewport-stage-v1",
+        "fit": "contain",
+        "align": "bottom"
+      },
+      "direction": "mirror",
+      "timing": {
+        "playbackDurationMs": 14000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 16500
+      },
+      "posterAssetId": "new-year-default-bullfinch-couriers-poster-bd5d3d70984ca8fc",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-bullfinch-couriers-desktop-1901d6be39a86042"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-bullfinch-couriers-mobile-04574a97fa496313"
+        }
+      ]
+    },
+    {
+      "id": "gift-wrapping",
+      "labelId": "giftWrappingToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-composer-outline-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 340,
+          "y": 164,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.6,
+          "max": 1
+        },
+        "fallback": "stage-anchor"
+      },
+      "direction": "mirror",
+      "timing": {
+        "playbackDurationMs": 16000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 18500
+      },
+      "posterAssetId": "new-year-default-gift-wrapping-poster-964179e2cd040815",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-gift-wrapping-desktop-28260bbcf8f593a6"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-gift-wrapping-mobile-3d541976f665e859",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 210,
+              "y": 132,
+              "width": 300,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.77,
+              "max": 1
+            },
+            "fallback": "stage-anchor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "snowman-delivery",
+      "labelId": "snowmanDeliveryToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-copy-track-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.9,
+          "max": 0.9
+        },
+        "fallback": "stage-anchor"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 25000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 27500
+      },
+      "posterAssetId": "new-year-default-snowman-delivery-poster-9a5fcf2229c5f6db",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-snowman-delivery-desktop-e102fb11b63505f4"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-snowman-delivery-mobile-655cd2599ddb1964",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 0,
+              "y": 0,
+              "width": 240,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.68,
+              "max": 0.68
+            },
+            "fallback": "stage-anchor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "santa-history-delivery",
+      "labelId": "santaHistoryDeliveryToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "viewport-stage-v1",
+        "interaction-history-ladder-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "viewport-stage-v1",
+        "fit": "contain",
+        "align": "center"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 27000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 29500
+      },
+      "posterAssetId": "new-year-default-santa-history-delivery-poster-dbf68dbaca2e2cac",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-santa-history-delivery-desktop-0166262c3d3c46ae"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-santa-history-delivery-mobile-e44dde821ea6b972"
+        }
+      ]
+    },
+    {
+      "id": "polar-bears-workshop",
+      "labelId": "polarBearsWorkshopToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-composer-carry-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 340,
+          "y": 240,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.7,
+          "max": 1
+        },
+        "fallback": "poster"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 28000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 30500
+      },
+      "posterAssetId": "new-year-default-polar-bears-poster-dff2f7e66fbac2bd",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-polar-bears-desktop-2dcdcf837b4415ea"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-polar-bears-mobile-78f96dd7945d768f",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 210,
+              "y": 220,
+              "width": 300,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.85,
+              "max": 1
+            },
+            "fallback": "poster"
+          }
+        }
+      ]
+    },
+    {
+      "id": "snow-circus",
+      "labelId": "snowCircusToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-button-props-v1",
+        "static-poster-v1"
+      ],
+      "direction": "none",
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 0,
+          "y": 300,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.58,
+          "max": 0.9
+        },
+        "fallback": "stage-anchor"
+      },
+      "timing": {
+        "playbackDurationMs": 26000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 28250
+      },
+      "posterAssetId": "new-year-default-poster-fc8fb7b6c7f0b578",
+      "posterDurationMs": 3000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-default-desktop-ab5df71a0fbf1225"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-default-mobile-ab5df71a0fbf1225"
+        }
+      ]
+    }
+  ]
+}

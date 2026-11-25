@@ -29,6 +29,7 @@
   - [Layout](#layout)
   - [Santa History Delivery](#santa-history-delivery)
   - [Polar bears on the New Year gift trigger](#polar-bears-on-the-new-year-gift-trigger)
+  - [Snow Circus in the New Year secret pool](#snow-circus-in-the-new-year-secret-pool)
   - [Scene authoring](#scene-authoring)
   - [Composer-carry scenes](#composer-carry-scenes)
   - [Check](#check)
@@ -271,8 +272,9 @@ static/celebrations/
 ├── index.json                         # mutable: every published version and the default per event
 ├── new-year-default/
 │   ├── 1.2.0/                         # retained immutable version
-│   ├── 1.3.0/                         # previous version, kept for rollback
-│   └── 1.4.0/
+│   ├── 1.3.0/                         # retained immutable version
+│   ├── 1.4.0/                         # previous version, kept for rollback
+│   └── 1.5.1/
 │       ├── manifest.json              # scenes, timing, variants and the declared assets
 │       ├── bullfinch-couriers.desktop.<sha256 prefix>.json
 │       ├── bullfinch-couriers.mobile.<sha256 prefix>.json
@@ -288,7 +290,10 @@ static/celebrations/
 │       ├── santa-history-delivery.poster.<sha256 prefix>.svg
 │       ├── polar-bears.desktop.<sha256 prefix>.json
 │       ├── polar-bears.mobile.<sha256 prefix>.json
-│       └── polar-bears.poster.<sha256 prefix>.svg
+│       ├── polar-bears.poster.<sha256 prefix>.svg
+│       ├── snow-circus.desktop.<sha256 prefix>.json
+│       ├── snow-circus.mobile.<sha256 prefix>.json
+│       └── snow-circus.poster.<sha256 prefix>.svg
 ├── halloween-default/
 │   └── 1.0.0/
 │       ├── manifest.json
@@ -401,6 +406,30 @@ is required only by the bear scene, so clients without it keep the other
 supported scenes. Removing the bears' allowlist entry disables only that scene.
 For a whole-pack rollback, select retained `new-year-default@1.3.0` and bump
 the catalog revision; the separate bears event is unaffected.
+
+### Snow Circus in the New Year secret pool
+
+New Year `1.5.1` adds the penguin/snowman `snow-circus` scene to the standard
+pack, preserving every scene and asset from `1.4.0`. The catalog default is
+`new-year-default@1.5.1`. [Native source and rollout notes](./authoring/snow-circus/README.md)
+cover its editable Lottie/SVG, authored contact envelope and numerical budgets. Unsafe button locations use drawn snow to keep the cast inside the viewport.
+
+Use a Chat build supporting `interaction-button-props-v1`. Append
+`new-year/snow-circus` to the existing `UI_EVENT_EXTERNAL_SCENES` or managed
+`ui.celebrationDelivery.externalScenes` allowlist, keep the `new-year` event and
+`prefer-external` delivery, and change the delivery revision. For Config Studio,
+activate all four delivery keys as described above. Preserve other admitted
+scenes and events. Reload clients after rollout. The `happy new year` phrase randomly chooses Snow Circus alongside gift wrapping,
+reindeer takeoff and Santa. Ordinary gift clicks exclude Snow Circus and Santa.
+Use a Chat build with this secret-scene routing as well as the button-props adapter.
+
+The capability requirement is scene-local. Older clients omit Snow Circus while
+keeping the other supported scenes. Remove only its allowlist entry to disable it,
+or restore `new-year-default@1.4.0` with a new catalog revision for a pack rollback.
+Local preparation does not establish that these changes have been published.
+
+Validate its source with `node authoring/snow-circus/check.mjs` and run the
+publication checker and tests below.
 
 ### Scene authoring
 
@@ -598,5 +627,5 @@ Publish in this order: resources, then the manifest, then `index.json`. Chat onl
 
 ### Retention
 
-Keep the version `defaults` names plus the previous one, so a rollback is one index change. The check fails when a pack directory holds more than three versions. Delete an older version, together with its `index.json` entry, in a separate change, and only once no `index.json` revision from the last 30 days names it.
+Keep the version `defaults` names plus the previous one, so a rollback is one index change. The check fails when a pack directory holds more than three versions, with one explicit exception: `new-year-default` may retain exactly `1.2.0`, `1.3.0`, `1.4.0` and `1.5.1` together so adding Snow Circus does not remove recently referenced immutable assets. Other four-version sets and any fifth version still fail. Retire this exception with the old version in a separate retention change after the window permits it. Delete an older version, together with its `index.json` entry, in a separate change, and only once no `index.json` revision from the last 30 days names it.
 

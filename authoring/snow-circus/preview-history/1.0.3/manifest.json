@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 1,
+  "packId": "new-year-snow-circus",
+  "version": "1.0.3",
+  "eventId": "new-year",
+  "requiredCapabilities": [
+    "lottie-light-svg-v1",
+    "viewport-stage-v1",
+    "static-poster-v1"
+  ],
+  "assets": [
+    {
+      "assetId": "new-year-snow-circus-bullfinch-couriers-desktop-1901d6be39a86042",
+      "file": "bullfinch-couriers.desktop.1901d6be39a86042.json",
+      "mediaType": "application/json",
+      "bytes": 104538,
+      "sha256": "1901d6be39a86042d15a1eb6fa0483efedf558cc6b2ef317e6c4d525feaa2aa3"
+    },
+    {
+      "assetId": "new-year-snow-circus-bullfinch-couriers-mobile-04574a97fa496313",
+      "file": "bullfinch-couriers.mobile.04574a97fa496313.json",
+      "mediaType": "application/json",
+      "bytes": 104543,
+      "sha256": "04574a97fa496313ae644a0e0384bb0e347492174259c6a0a8dfe4886c27c19d"
+    },
+    {
+      "assetId": "new-year-snow-circus-bullfinch-couriers-poster-bd5d3d70984ca8fc",
+      "file": "bullfinch-couriers.poster.bd5d3d70984ca8fc.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 79488,
+      "sha256": "bd5d3d70984ca8fc40283aee3c1a87a8ae9a7f0191a89058b5c43ab7d67556a4"
+    },
+    {
+      "assetId": "new-year-snow-circus-gift-wrapping-desktop-28260bbcf8f593a6",
+      "file": "gift-wrapping.desktop.28260bbcf8f593a6.json",
+      "mediaType": "application/json",
+      "bytes": 112711,
+      "sha256": "28260bbcf8f593a605aabb29c2230d88798d1636e4c198ca5c806454709c50e7"
+    },
+    {
+      "assetId": "new-year-snow-circus-gift-wrapping-mobile-3d541976f665e859",
+      "file": "gift-wrapping.mobile.3d541976f665e859.json",
+      "mediaType": "application/json",
+      "bytes": 111848,
+      "sha256": "3d541976f665e85926dbf3f3302ab9e8f3746ddbf12ab821da18f871b1866c5c"
+    },
+    {
+      "assetId": "new-year-snow-circus-gift-wrapping-poster-964179e2cd040815",
+      "file": "gift-wrapping.poster.964179e2cd040815.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 9297,
+      "sha256": "964179e2cd04081512181d81ae9fded957f265cff1e16e407a8a469896a4717a"
+    },
+    {
+      "assetId": "new-year-snow-circus-snowman-delivery-desktop-e102fb11b63505f4",
+      "file": "snowman-delivery.desktop.e102fb11b63505f4.json",
+      "mediaType": "application/json",
+      "bytes": 278719,
+      "sha256": "e102fb11b63505f431b2f77fb66438cc6f9374242ea23e5c16f16f19187988af"
+    },
+    {
+      "assetId": "new-year-snow-circus-snowman-delivery-mobile-655cd2599ddb1964",
+      "file": "snowman-delivery.mobile.655cd2599ddb1964.json",
+      "mediaType": "application/json",
+      "bytes": 286910,
+      "sha256": "655cd2599ddb1964fc6c97033ff3d4f6fcb9ed7ffbd676b598c2de5238568f10"
+    },
+    {
+      "assetId": "new-year-snow-circus-snowman-delivery-poster-9a5fcf2229c5f6db",
+      "file": "snowman-delivery.poster.9a5fcf2229c5f6db.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 4362,
+      "sha256": "9a5fcf2229c5f6db023c9c9f276f9acad5d961dbd8f46b79cd6ac1a4846dc1df"
+    },
+    {
+      "assetId": "new-year-snow-circus-desktop-dd0ad55212653b88",
+      "file": "snow-circus.desktop.dd0ad55212653b88.json",
+      "mediaType": "application/json",
+      "bytes": 144980,
+      "sha256": "dd0ad55212653b88a2f9f8ddebf8dcbe9c84f30f2dfb32c7dd5e382884552f7c"
+    },
+    {
+      "assetId": "new-year-snow-circus-mobile-dd0ad55212653b88",
+      "file": "snow-circus.mobile.dd0ad55212653b88.json",
+      "mediaType": "application/json",
+      "bytes": 144980,
+      "sha256": "dd0ad55212653b88a2f9f8ddebf8dcbe9c84f30f2dfb32c7dd5e382884552f7c"
+    },
+    {
+      "assetId": "new-year-snow-circus-poster-fc8fb7b6c7f0b578",
+      "file": "snow-circus.poster.fc8fb7b6c7f0b578.svg",
+      "mediaType": "image/svg+xml",
+      "bytes": 10753,
+      "sha256": "fc8fb7b6c7f0b5784557c27d5781938650a798b6b78115d4a8d59e6a53d0ece6"
+    }
+  ],
+  "labels": {
+    "en": {
+      "bullfinchCouriersToastMessage": "Two couriers, one gingerbread star, only a few bites missing. Send \"{{phrase}}\" in the start-page chat for a secret surprise.",
+      "snowCircusToastMessage": "Two performers, three snowballs, one splendid moustache."
+    },
+    "ru": {
+      "snowCircusToastMessage": "Два артиста, три снежка и великолепные усы."
+    }
+  },
+  "scenes": [
+    {
+      "id": "bullfinch-couriers",
+      "labelId": "bullfinchCouriersToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "viewport-stage-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "viewport-stage-v1",
+        "fit": "contain",
+        "align": "bottom"
+      },
+      "direction": "mirror",
+      "timing": {
+        "playbackDurationMs": 14000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 16500
+      },
+      "posterAssetId": "new-year-snow-circus-bullfinch-couriers-poster-bd5d3d70984ca8fc",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-snow-circus-bullfinch-couriers-desktop-1901d6be39a86042"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-snow-circus-bullfinch-couriers-mobile-04574a97fa496313"
+        }
+      ]
+    },
+    {
+      "id": "gift-wrapping",
+      "labelId": "giftWrappingToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-composer-outline-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 340,
+          "y": 164,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.6,
+          "max": 1
+        },
+        "fallback": "stage-anchor"
+      },
+      "direction": "mirror",
+      "timing": {
+        "playbackDurationMs": 16000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 18500
+      },
+      "posterAssetId": "new-year-snow-circus-gift-wrapping-poster-964179e2cd040815",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-snow-circus-gift-wrapping-desktop-28260bbcf8f593a6"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-snow-circus-gift-wrapping-mobile-3d541976f665e859",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 210,
+              "y": 132,
+              "width": 300,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.77,
+              "max": 1
+            },
+            "fallback": "stage-anchor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "snowman-delivery",
+      "labelId": "snowmanDeliveryToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-copy-track-v1",
+        "static-poster-v1"
+      ],
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.9,
+          "max": 0.9
+        },
+        "fallback": "stage-anchor"
+      },
+      "direction": "none",
+      "timing": {
+        "playbackDurationMs": 25000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 27500
+      },
+      "posterAssetId": "new-year-snow-circus-snowman-delivery-poster-9a5fcf2229c5f6db",
+      "posterDurationMs": 4000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-snow-circus-snowman-delivery-desktop-e102fb11b63505f4"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-snow-circus-snowman-delivery-mobile-655cd2599ddb1964",
+          "placement": {
+            "template": "composer-anchor-v1",
+            "anchor": "composer",
+            "anchorRect": {
+              "x": 0,
+              "y": 0,
+              "width": 240,
+              "height": 56
+            },
+            "edge": "top",
+            "scale": {
+              "min": 0.68,
+              "max": 0.68
+            },
+            "fallback": "stage-anchor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "snow-circus",
+      "labelId": "snowCircusToastMessage",
+      "renderer": "lottie-light-svg-v1",
+      "requiredCapabilities": [
+        "lottie-light-svg-v1",
+        "composer-anchor-v1",
+        "interaction-button-props-v1",
+        "static-poster-v1"
+      ],
+      "direction": "none",
+      "placement": {
+        "template": "composer-anchor-v1",
+        "anchor": "composer",
+        "anchorRect": {
+          "x": 0,
+          "y": 300,
+          "width": 520,
+          "height": 56
+        },
+        "edge": "top",
+        "scale": {
+          "min": 0.58,
+          "max": 0.9
+        },
+        "fallback": "stage-anchor"
+      },
+      "timing": {
+        "playbackDurationMs": 26000,
+        "loadTimeoutMs": 2000,
+        "readyTimeoutMs": 250,
+        "maxLifetimeMs": 28250
+      },
+      "posterAssetId": "new-year-snow-circus-poster-fc8fb7b6c7f0b578",
+      "posterDurationMs": 3000,
+      "variants": [
+        {
+          "when": {
+            "layout": "desktop"
+          },
+          "animationAssetId": "new-year-snow-circus-desktop-dd0ad55212653b88"
+        },
+        {
+          "when": {
+            "layout": "mobile"
+          },
+          "animationAssetId": "new-year-snow-circus-mobile-dd0ad55212653b88"
+        }
+      ]
+    }
+  ]
+}
