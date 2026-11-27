@@ -4,7 +4,7 @@ A 26-second New Year scene: a penguin removes two buttons, coats them in snow an
 
 The native `snow-circus.desktop.lottie.json`, `snow-circus.mobile.lottie.json` and `snow-circus.poster.svg` are the maintained source. They were seeded once, then revised by rendered contact/pose inspection. No generator ships or runs on activation. Edit native shapes/keys directly, preserve the contact grammar, and create a new immutable version for later releases. The desktop and mobile art is currently byte-identical; the host scales it uniformly and borrows at most one prop on mobile. The mobile staging retains both characters and every joke.
 
-`scene.json` pins the candidate descriptor. `source-inventory.json` records bytes, hashes and structural costs; `node authoring/snow-circus/check.mjs` checks source/pack identity and the tighter scene budget. The full publication checker remains `node scripts/check-celebration-packs.mjs`, with regression tests `node --test scripts/check-celebration-packs.test.mjs`.
+`scene.json` pins the candidate descriptor. `source-inventory.json` records bytes, hashes and structural costs; `node authoring/snow-circus/check.mjs` checks source/pack identity and the tighter scene budget. The full publication checker remains `node tests/check-celebration-packs.mjs`, with regression tests `node --test tests/check-celebration-packs.test.mjs`.
 
 ## Contact contract
 
