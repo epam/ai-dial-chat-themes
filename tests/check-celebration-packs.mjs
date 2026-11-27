@@ -6,7 +6,7 @@
  * Lottie authoring profile and this repository's retention policy, so a bad
  * pack fails review here instead of turning into a 502 in production.
  *
- * Usage: node scripts/check-celebration-packs.mjs [celebrations directory]
+ * Usage: node tests/check-celebration-packs.mjs [celebrations directory]
  * Exit code 0 when everything is valid, 1 otherwise. No dependencies.
  */
 import { createHash } from 'node:crypto';

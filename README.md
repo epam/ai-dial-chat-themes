@@ -604,8 +604,8 @@ environment, not deployment performance benchmarks.
 Run the check before every pull request; CI runs it too:
 
 ```bash
-node scripts/check-celebration-packs.mjs
-node --test scripts/check-celebration-packs.test.mjs
+node tests/check-celebration-packs.mjs
+node --test tests/check-celebration-packs.test.mjs
 ```
 
 The first command recomputes every size and hash and applies the same rules the Chat backend applies, plus the Lottie limits, the composer-anchor and slot rules, and the retention rule below. The second breaks one thing at a time in a copy of the published packs and proves that the first one rejects it: each kind of broken composer-anchor placement and outline slot, one case for every cat-borrow rule above, the copy-track slot, marker, reference, override, pose and layer-cap rules, composer-carry hierarchy, travel, side-slot and placement rules, and history-ladder station, marker, bounds, branch ownership and copy-visibility rules. It also proves that tangents Chat treats as linear are accepted and that a file shared by two variants is reported once.
@@ -617,7 +617,7 @@ A published version is never edited. To change a pack, publish a new version:
 1. Add the resources and the `manifest.json` under `static/celebrations/<packId>/<new version>/`.
 2. Add the version to `index.json` `packs`, with the manifest's byte size and SHA-256.
 3. Point `defaults.<eventId>` at the new version and bump `revision`.
-4. Run `node scripts/check-celebration-packs.mjs`.
+4. Run `node tests/check-celebration-packs.mjs`.
 
 Publish in this order: resources, then the manifest, then `index.json`. Chat only follows the index, so every file a new index names already exists when the index changes. To roll back, point `defaults` back at the previous version and bump `revision`. Deleting `index.json` returns every event to its compiled scenes within a minute and leaves themes untouched.
 

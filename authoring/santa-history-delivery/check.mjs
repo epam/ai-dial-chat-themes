@@ -7,7 +7,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const checker = resolve(here, '../../scripts/check-celebration-packs.mjs');
+const checker = resolve(here, '../../tests/check-celebration-packs.mjs');
 const source = JSON.parse(readFileSync(join(here, 'scene.json'), 'utf8'));
 const root = mkdtempSync(join(tmpdir(), 'santa-history-authoring-'));
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');

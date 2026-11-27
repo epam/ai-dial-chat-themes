@@ -7,7 +7,7 @@
  * new-year-polar-bears@1.0.0 or halloween-default@1.0.0,
  * re-hashes what it changed and expects the checker to fail with a message.
  *
- * Usage: node --test scripts/check-celebration-packs.test.mjs
+ * Usage: node --test tests/check-celebration-packs.test.mjs
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -25,8 +25,8 @@ import { after, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPTS = dirname(fileURLToPath(import.meta.url));
-const SOURCE = join(SCRIPTS, '../static/celebrations');
+const TESTS = dirname(fileURLToPath(import.meta.url));
+const SOURCE = join(TESTS, '../static/celebrations');
 const PACK = 'new-year-default/1.2.0';
 const CAT_PACK = 'halloween-default/1.0.0';
 const SNOWMAN_PACK = 'new-year-default/1.2.0';
@@ -86,7 +86,7 @@ const check = (breakPack, pack = PACK) => {
   }
   const result = spawnSync(
     process.execPath,
-    [join(SCRIPTS, 'check-celebration-packs.mjs'), root],
+    [join(TESTS, 'check-celebration-packs.mjs'), root],
     { encoding: 'utf8' },
   );
   return { status: result.status, output: result.stdout + result.stderr };
@@ -221,7 +221,7 @@ const checkHistory = (edit = () => {}, editManifest = () => {}) => {
     packId: manifest.packId, version: manifest.version, eventId: manifest.eventId,
     manifest: { path: `${pack}/manifest.json`, bytes: bytes.length, sha256: sha256(bytes) },
   }] }));
-  const result = spawnSync(process.execPath, [join(SCRIPTS, 'check-celebration-packs.mjs'), root], { encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [join(TESTS, 'check-celebration-packs.mjs'), root], { encoding: 'utf8' });
   return { status: result.status, output: result.stdout + result.stderr };
 };
 

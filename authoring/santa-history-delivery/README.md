@@ -57,7 +57,7 @@ From the Themes repository root:
 
 ```sh
 node authoring/santa-history-delivery/check.mjs
-node --test scripts/check-celebration-packs.test.mjs
+node --test tests/check-celebration-packs.test.mjs
 ```
 
 The first command packages the complete variants and poster into a temporary
